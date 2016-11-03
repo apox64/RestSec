@@ -6,7 +6,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
+import java.util.Properties;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
@@ -16,16 +21,26 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class JuiceShop {
 
-    // LOGIN CREDENTIALS
-    private String email = "admin@juice-sh.op";
-    private String password = "admin123";
+    private String email;
+    private String password;
 
     @Before
-    public void initTarget() {
-        RestAssured.baseURI = "http://192.168.99.100";
-        RestAssured.port = 32769;
-        RestAssured.basePath = "/rest"; //Leave this as "/rest" for juice-shop
+    public void initTarget() throws IOException {
+
+        Properties properties = new Properties();
+
+        try(InputStream fis = getClass().getClassLoader().getResourceAsStream("config.properties")){
+            properties.load(fis);
+        }
+
+        RestAssured.baseURI = properties.getProperty("base-uri");
+        RestAssured.port = Integer.parseInt(properties.getProperty("port"));
+        RestAssured.basePath = properties.getProperty("base-path");
         RestAssured.proxy("127.0.0.1",8080); //Comment out, if you don't use a proxy
+
+        this.email = properties.getProperty("username");
+        this.password = properties.getProperty("password");
+
     }
 
     @Test
