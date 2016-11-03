@@ -12,7 +12,7 @@
 ## Description <a name="Description"></a>
 
 This tool is developed with the aim of testing the REST interface of your web service for some of the __OWASP Top 10__ security vulnerabilities automatically. It uses
-- [junit 4.12](https://github.com/junit-team/junit4) __(JUnit 5 might be used soon)__
+- [junit 4.12](https://github.com/junit-team/junit4) __(JUnit 5 is currently not supported)__
 - [rest-assured](https://github.com/rest-assured/rest-assured)
 - built with: Maven (adding gradle later)
 

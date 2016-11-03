@@ -4,10 +4,10 @@ import io.restassured.response.Response;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Ignore;
+//import org.junit.jupiter.api.DisplayName;
+//import org.junit.jupiter.api.Test;
 import org.junit.Test;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -19,6 +19,7 @@ import static io.restassured.authentication.FormAuthConfig.springSecurity;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.hamcrest.Matchers.equalTo;
 
+//@DisplayName("Testing OWASP JuiceShop")
 public class JuiceShop {
 
     private String email;
@@ -29,8 +30,10 @@ public class JuiceShop {
 
         Properties properties = new Properties();
 
-        try(InputStream fis = getClass().getClassLoader().getResourceAsStream("config.properties")){
-            properties.load(fis);
+        try(InputStream stream = getClass().getClassLoader().getResourceAsStream("config.properties")){
+            //InputStreamReader isr = new InputStreamReader(stream, "UTF-8");
+            //properties.load(isr);
+            properties.load(stream);
         }
 
         RestAssured.baseURI = properties.getProperty("base-uri");
@@ -41,11 +44,14 @@ public class JuiceShop {
         this.email = properties.getProperty("username");
         this.password = properties.getProperty("password");
 
+        this.password = new String(password.getBytes("ISO-8859-1"),"UTF-8");
+
     }
 
     @Test
+    //@DisplayName("Is specified juice-shop online?")
     //TODO: write better GET test to see if target is reachable. if not, then break and end all other tests
-    public void GET_targetOnline() {
+    public void targetOnline() {
         RestAssured.given().
                 when().
                 get("/product/search").
@@ -54,7 +60,8 @@ public class JuiceShop {
     }
 
     @Test
-    public void GET_simpleSearch() {
+    //@DisplayName("performing simple search with expected result")
+    public void simpleSearchMatchesExpectedResult() {
         RestAssured.given().
                 param("q","orange").
                 when().
@@ -67,8 +74,9 @@ public class JuiceShop {
 
     @Ignore("JSON Schema not adapted yet.")
     @Test
+    //@DisplayName("matching response to defined JSON schema")
     //TODO: WRITE PROPER JSON-SCHEMA TO MATCH ONLY CORRECT ANSWERS FROM JUICESHOP
-    public void GET_responseMatchesProductSchema() {
+    public void responseMatchesJSONProductSchema() {
         RestAssured.given().
                 param("q","orange").
                 when().
@@ -80,8 +88,9 @@ public class JuiceShop {
 
     @Ignore("Not implemented yet.")
     @Test
+    //@DisplayName("getting cookies")
     //TODO: RETURNS TRUE?
-    public void GET_cookies() {
+    public void showCookies() {
         Response response = when().get("/user/login");
         // Get all cookies as simple name-value pairs
         Map<String, String> allCookies = response.getCookies();
@@ -90,7 +99,8 @@ public class JuiceShop {
     }
 
     @Test
-    public void POST_basicAuthHTTPBody() {
+    //@DisplayName("authenticating: basic, JSON, HTTP body")
+    public void authBasicJSONHTTPBody() {
         RestAssured.given().
                 request().body("{\"email\":\""+email+"\",\"password\":\""+password+"\"}").
                 contentType(ContentType.JSON).
@@ -100,9 +110,9 @@ public class JuiceShop {
                 statusCode(200);
     }
 
-    @Ignore("Use this test only if you do basic auth via HTTP Header.")
     @Test
-    public void POST_basicAuthHTTPHeader() {
+    //@DisplayName("authenticating: basic, base64, HTTP header")
+    public void authBasicBase64HTTPHeader() {
         RestAssured.given().
                 auth().preemptive().basic(email,password).
                 when().
@@ -113,7 +123,8 @@ public class JuiceShop {
 
     @Ignore("Not implemented yet.")
     @Test
-    public void GET_CSRFProtection() {
+    //@DisplayName("looking for CSRF protection cookie")
+    public void csrfProtectionTokenReturned() {
         /*
         given().
                 auth().form("John", "Doe", formAuthConfig().withAutoDetectionOfCsrf()).
