@@ -1,34 +1,26 @@
 {
   "title": "Juice Shop Product Schema",
+  "description": "Contains status and data",
   "type": "object",
   "properties": {
 
     "status": {
-      "description": "status",
       "type": "string",
-      "value" : ["success"]
+      "pattern" : "success"
     },
+
     "data": {
-      "description": "data",
       "type": "array",
-      "items": [
-        {
-          "id": "number"
-        },
-        {
-          "name": "string"
-        },
-        {
-          "description": "string"
-        },
-        {
-          "price": {
-            "type": "number",
-            "minimum": [100]
-          }
-        }
-      ]
+      "minItems": 1,
+      "items": {
+        "properties": {
+          "id": {},
+          "name": {},
+          "price": {}
+        }, "required": ["id", "name", "price"]
+      }
     }
   },
+
   "required": ["status", "data"]
 }

@@ -72,10 +72,8 @@ public class JuiceShop {
                 body("data[0].price", equalTo(2.99f));
     }
 
-    @Ignore("JSON Schema not adapted yet.")
     @Test
     //@DisplayName("matching response to defined JSON schema")
-    //TODO: WRITE PROPER JSON-SCHEMA TO MATCH ONLY CORRECT ANSWERS FROM JUICESHOP
     public void responseMatchesJSONProductSchema() {
         RestAssured.given().
                 param("q","orange").
@@ -84,18 +82,6 @@ public class JuiceShop {
                 then().
                 assertThat().
                 body(matchesJsonSchemaInClasspath("juiceshop-product-schema.json"));
-    }
-
-    @Ignore("Not implemented yet.")
-    @Test
-    //@DisplayName("getting cookies")
-    //TODO: RETURNS TRUE?
-    public void showCookies() {
-        Response response = when().get("/user/login");
-        // Get all cookies as simple name-value pairs
-        Map<String, String> allCookies = response.getCookies();
-        // Get a single cookie value:
-        //String cookieValue = response.getCookie("cookieName");
     }
 
     @Test
@@ -110,7 +96,9 @@ public class JuiceShop {
                 statusCode(200);
     }
 
+    @Ignore("juice-shop doesn't authenticate via HTTP header.")
     @Test
+    //TODO: Move to different file.
     //@DisplayName("authenticating: basic, base64, HTTP header")
     public void authBasicBase64HTTPHeader() {
         RestAssured.given().
@@ -119,6 +107,17 @@ public class JuiceShop {
                 post("/user/login").
                 then().
                 statusCode(200);
+    }
+
+    @Ignore("Not implemented yet.")
+    @Test
+    //@DisplayName("getting cookies")
+    public void showCookies() {
+        Response response = when().get("/user/login");
+        // Get all cookies as simple name-value pairs
+        Map<String, String> allCookies = response.getCookies();
+        // Get a single cookie value:
+        //String cookieValue = response.getCookie("cookieName");
     }
 
     @Ignore("Not implemented yet.")
