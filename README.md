@@ -14,7 +14,7 @@ This tool is developed with the aim of testing the REST interface of your web se
 Some of the following common security vulnerabilities categories __can't be properly tested__ via the REST interface, thus they are not (yet) implemented (at least I haven't found out a way to do so yet).
 
 | # | Name | Supported | Method |
-|:-:|:-|:-:|:-|
+|:---:|:---|:---:|:---|
 |A1|Injection|maybe|Common SQLi Payloads, but there are other tools for SQLi|
 |A2|Broken Authentication and Session Management|planned|Basic Authentication, OAuth2 Session Management (Tokens), Are Session Cookies Returned, that shouldn't (jesessionid)?|
 |A3|Cross-Site Scripting (XSS)|planned|Injecting scripts via JSON elements|
