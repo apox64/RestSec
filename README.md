@@ -2,14 +2,21 @@
 
 `This project is still in the early phase of development.`
 
-## Description
+## Overview
+- [Description](#Description)
+- [Supported OWASP Top 10 (2013) Vulnerabilities](#Supported_Vulnerabilities)
+- [Sources](#Sources)
+- [Usage](#Usage)
+
+
+## Description <a name="Description"></a>
 
 This tool is developed with the aim of testing the REST interface of your web service for some of the __OWASP Top 10__ security vulnerabilities automatically. It uses
 - [junit 4.12](https://github.com/junit-team/junit4) __(JUnit 5 might be used soon)__
 - [rest-assured](https://github.com/rest-assured/rest-assured)
 - built with: Maven (adding gradle later)
 
-## Supported OWASP Top 10 2013 Security Vulnerabilities
+## Supported OWASP Top 10 (2013) Security Vulnerabilities <a name="Supported_Vulnerabilities"></a>
 
 Some of the following common security vulnerabilities categories __can't be properly tested__ via the REST interface, thus they are not (yet) implemented (at least I haven't found out a way to do so yet).
 
@@ -26,12 +33,16 @@ Some of the following common security vulnerabilities categories __can't be prop
 |A9|Using Components with Known Vulnerabilities|planned|Checking used libraries with OWASP Dependency Checker|
 |A10|Unvalidated Redirects and Forwards|planned|Can an unauthorized user with the right token also POST and DELETE?|
 
-## Usage
+## Sources <a name="Sources"></a>
+- [REST_Assessment_Cheat_Sheet](https://www.owasp.org/index.php/REST_Assessment_Cheat_Sheet)
+- [REST_Security_Cheat_Sheet](https://www.owasp.org/index.php/REST_Security_Cheat_Sheet)
 
-### restsec-samples (with juice-shop)
+## Usage <a name="Usage"></a>
+
+### restsec-samples (with juice-shop) <a name="restsec-samples"></a>
 - run the [juice-shop](https://github.com/bkimminich/juice-shop) by [@bkimminich](https://github.com/bkimminich)
 - enter the URI and port of the instance in __initTarget()__
 - run all tests
 
-### restsec-core (*no content yet*)
+### restsec-core (*no content yet*) <a name="restsec-core"></a>
 - the tests from __restsec-samples__ will be moved here when generalized
