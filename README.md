@@ -1,6 +1,6 @@
 # RestSec
 
-__This project is still in the early phase of development.__
+`This project is still in the early phase of development.`
 
 ## Description
 
@@ -28,4 +28,10 @@ Some of the following common security vulnerabilities categories __can't be prop
 
 ## Usage
 
--
+### restsec-samples (with juice-shop)
+- run the [juice-shop](https://github.com/bkimminich/juice-shop) by [@bkimminich](https://github.com/bkimminich)
+- enter the URI and port of the instance in __initTarget()__
+- run all tests
+
+### restsec-core (*no content yet*)
+- the tests from __restsec-samples__ will be moved here when generalized

@@ -24,8 +24,8 @@ public class JuiceShop {
     public void initTarget() {
         RestAssured.baseURI = "http://192.168.99.100";
         RestAssured.port = 32769;
-        RestAssured.basePath = "/rest";
-        RestAssured.proxy("127.0.0.1",8080);
+        RestAssured.basePath = "/rest"; //Leave this as "/rest" for juice-shop
+        RestAssured.proxy("127.0.0.1",8080); //Comment out, if you don't use a proxy
     }
 
     @Test
