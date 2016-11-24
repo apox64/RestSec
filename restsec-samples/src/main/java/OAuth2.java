@@ -1,3 +1,4 @@
+import io.restassured.RestAssured;
 import io.restassured.authentication.AuthenticationScheme;
 import io.restassured.authentication.OAuthSignature;
 import io.restassured.authentication.PreemptiveOAuth2HeaderScheme;
@@ -17,63 +18,23 @@ import static org.junit.Assert.assertThat;
 
 public class OAuth2 {
 
-    /*
-    @Ignore("Legacy: OAuth1 - Header Signing")
-    @Test
-    public void POST_OAuth1_Header_Signing() {
-        //RestAssured.oauth(consumerKey, consumerSecret, accessToken, secretToken);
-        given().
-                auth().oauth("key", "secret", "accesskey", "accesssecret").
-                when().
-                get("http://term.ie/oauth/example/echo_api.php?works=true").
-                then().
-                body("html.body", equalTo("works=true"));
-    }
-
-    @Ignore("Legacy: OAuth1 - Query Signing")
-    @Test
-    public void POST_OAuth1_Query_Signing() {
-        given().
-                auth().oauth("key", "secret", "accesskey", "accesssecret", OAuthSignature.QUERY_STRING).
-                when().
-                get("http://term.ie/oauth/example/echo_api.php?works=true").
-                then().
-                body("html.body", equalTo("works=true"));
-    }
-    */
+    String accessToken = "";
 
     @Test
     //TODO: Continue with OAuth2 here
     public void oAuth2() {
-        //RestAssured.oauth2(accessToken, OAuthSignature);
-        //final RequestSpecification oauthTest = RestAssured.given().auth().oauth2("", OAuthSignature.valueOf(""));
+        given().
+                auth().
+                oauth2(accessToken).
+            when().
+                get("").
+            then().
+                statusCode(200);
     }
 
     /* ######################################################################################################################################################
     UNMODIFIED CODE FROM rest-assured examples
     ###################################################################################################################################################### */
-
-    /*
-    @Test
-    public void oauth1_works_with_header_signing() {
-        given().
-                auth().oauth("key", "secret", "accesskey", "accesssecret").
-                when().
-                get("http://term.ie/oauth/example/echo_api.php?works=true").
-                then().
-                body("html.body", equalTo("works=true"));
-    }
-
-    @Test
-    public void oauth1_works_with_query_signing() {
-        given().
-                auth().oauth("key", "secret", "accesskey", "accesssecret", OAuthSignature.QUERY_STRING).
-                when().
-                get("http://term.ie/oauth/example/echo_api.php?works=true").
-                then().
-                body("html.body", equalTo("works=true"));
-    }
-    */
 
     @Test
     public void oauth2_works_with_preemptive_header_signing() {
