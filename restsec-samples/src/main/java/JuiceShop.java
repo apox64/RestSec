@@ -22,17 +22,17 @@ import static org.hamcrest.Matchers.equalTo;
 //@DisplayName("Testing OWASP JuiceShop v.2.18.0")
 public class JuiceShop {
 
-    private String email;
-    private String password;
-    private String loginPath = "/user/login";
+    private static String email;
+    private static String password;
+    private static String loginPath = "/user/login";
 
     @BeforeClass
     //NOTE: Load Properties (set URL, Port, Proxy, Admin-Login)
-    public void initTarget() throws IOException {
+    public static void initTarget() throws IOException {
 
         Properties properties = new Properties();
 
-        try(InputStream stream = getClass().getClassLoader().getResourceAsStream("config.properties")){
+        try(InputStream stream = JuiceShop.class.getClassLoader().getResourceAsStream("config.properties")){
             //InputStreamReader isr = new InputStreamReader(stream, "UTF-8");
             //properties.load(isr);
             properties.load(stream);
@@ -47,8 +47,8 @@ public class JuiceShop {
             RestAssured.proxy(properties.getProperty("proxy_ip"), Integer.parseInt(properties.getProperty("proxy_port")));
         }
 
-        this.email = properties.getProperty("username");
-        this.password = properties.getProperty("password");
+        email = properties.getProperty("username");
+        password = properties.getProperty("password");
     }
 
     @Test
