@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public class SwaggerTest {
+public class SwaggerParser {
 
     private String version;
     private String host;
@@ -22,7 +22,7 @@ public class SwaggerTest {
     private Set<String> attackSet = new HashSet<>();
     
     public static void main (String[] args){
-        SwaggerTest test = new SwaggerTest();
+        SwaggerParser test = new SwaggerParser();
         test.parseSwaggerJSON();
 
         try {
