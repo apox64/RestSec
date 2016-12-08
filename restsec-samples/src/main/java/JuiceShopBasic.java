@@ -3,15 +3,14 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.hamcrest.Matchers.equalTo;
@@ -20,11 +19,11 @@ import static org.hamcrest.Matchers.equalTo;
 //import org.junit.jupiter.api.Test;
 
 //@DisplayName("Testing OWASP JuiceShop v.2.18.0")
-public class JuiceShop {
+public class JuiceShopBasic {
 
     private static String email;
     private static String password;
-    private static String loginPath = "/user/login";
+    private static String loginPath = "rest/user/login";
 
     @BeforeClass
     //NOTE: Load Properties (set URL, Port, Proxy, Admin-Login)
@@ -32,9 +31,7 @@ public class JuiceShop {
 
         Properties properties = new Properties();
 
-        try(InputStream stream = JuiceShop.class.getClassLoader().getResourceAsStream("config.properties")){
-            //InputStreamReader isr = new InputStreamReader(stream, "UTF-8");
-            //properties.load(isr);
+        try(InputStream stream = JuiceShopBasic.class.getClassLoader().getResourceAsStream("config.properties")){
             properties.load(stream);
         }
 
@@ -52,23 +49,22 @@ public class JuiceShop {
     }
 
     @Test
-    //@DisplayName("Is specified juice-shop online?")
-    //TODO: write better GET test to see if target is reachable. if not, then break and end all other tests
-    public void pre_targetOnline() {
+    //@DisplayName("does api respond?")
+    public void apiReachable() {
         RestAssured.given().
                 when().
-                get("/product/search").
+                get("rest/product/search").
                 then().
                 statusCode(200);
     }
 
     @Test
     //@DisplayName("performing simple search with expected result")
-    public void pre__simpleSearchMatchesExpectedResult() {
+    public void searchMatchesExpectedResult() {
         RestAssured.given().
                 param("q","orange").
                 when().
-                get("/product/search").
+                get("rest/product/search").
                 then().
                 statusCode(200).
                 body("data[0].name", Matchers.equalTo("Orange Juice (1000ml)")).
@@ -77,11 +73,11 @@ public class JuiceShop {
 
     @Test
     //@DisplayName("matching response to defined JSON schema")
-    public void pre_responseMatchesJSONProductSchema() {
+    public void responseMatchesJSONSchema() {
         RestAssured.given().
                 param("q","orange").
                 when().
-                get("/product/search").
+                get("rest/product/search").
                 then().
                 assertThat().
                 body(matchesJsonSchemaInClasspath("juiceshop-product-schema.json"));
@@ -94,14 +90,14 @@ public class JuiceShop {
                 request().body("{\"email\":\""+email+"\",\"password\":\""+password+"\"}").
                 contentType(ContentType.JSON).
                 when().
-                post("/user/login").
+                post("rest/user/login").
                 then().
                 statusCode(200);
     }
 
-    @Test
+    @Test(expected = AssertionError.class)
     //NOTE: Checks only if payload can be stored, not if it's executed.
-    public void xSS_Stored_Payload_Accepted_Tier3() {
+    public void xssStoredPayloadAccepted_Simple_Tier3() {
 
         String payloadXXS3 = "{" +
                 "\"id\": 1," +
@@ -115,71 +111,72 @@ public class JuiceShop {
                 "\"deletedAt\": null" +
                 "}";
 
-        // Clearing basePath = /rest
-        RestAssured.basePath = "";
-
         given().
                 request().
                     body(payloadXXS3).
                     contentType(ContentType.JSON).
                 when().
-                    put("/api/Products/1").
+                    put("api/Products/1").
                 then().
                     statusCode(200);
                 // XXS Payload was accepted by the server.
+
+        System.err.println(">>> Server accepted the payload : 200 OK");
+
     }
 
-    @Test
+    @Test(expected = AssertionError.class)
     //NOTE: Checks only if payload can be stored, not if it's executed.
-    public void xSS_Stored_Nested_Payload_Accepted_Tier4() {
+    public void xssStoredPayloadAccepted_Nested_Tier4() {
 
         String payloadXXS4 = "{\"comment\":\"<<script>alert(\\\"XSS4\\\")</script>script>alert(\\\"XSS4\\\")<</script>/script>\",\"rating\":0}";
-
-        // Clearing basePath = /rest
-        RestAssured.basePath = "";
 
         given().
                 request().
                 body(payloadXXS4).
                 contentType(ContentType.JSON).
                 when().
-                post("/api/Feedbacks/").
+                post("api/Feedbacks/").
                 then().
                 statusCode(200);
-        // XXS Payload was accepted by the server.
+
+        System.err.println(">>> Server accepted the payload : 200 OK");
 
         // <<script>alert("XSS4")</script>script>alert("XSS4")<</script>/script>
     }
 
-    @Test
+    @Ignore
+    @Test(expected = AssertionError.class)
     //NOTE: No Content-Type header at all. 401/406 expected.
     //TODO: rest-assured always adds a content-type header (text/plain)
-    public void noContenttypeHeader(){
+    public void noContentTypeHeader(){
         given().
                 request().
                 body("{\"email\":\""+email+"\",\"password\":\""+password+"\"}").
                 when().
                 post(loginPath).
                 then().
-                statusCode(401);
+                statusCode(200);
+        System.err.println(">>> Server accepted not using a content-type header : 200 OK");
     }
 
-    @Test
+    @Test(expected = AssertionError.class)
     //NOTE: Gives a Content-Type Header, but sends other data.
-    public void falseContenttypeHeader(){
+    public void mismatchingContentTypeHeader(){
         given().
                 request().
                 body("{\"email\":\""+email+"\",\"password\":\""+password+"\"}").
-                contentType(ContentType.HTML).
+                contentType(ContentType.URLENC).
                 when().
                 post(loginPath).
                 then().
-                statusCode(401);
+                statusCode(200);
+        System.err.println(">>> Server accepted the mismatching ContentType Header with the actual content : 200 OK");
     }
 
     @Test
     //NOTE: Does the server copy the clients Accept-Header in the response Content-Type? 401/406 expected.
-    public void sendingFakeAcceptHeader() {
+    public void invalidAcceptHeaderReflected() {
 
         Response response = given().
                 request().
@@ -190,7 +187,7 @@ public class JuiceShop {
                 post(loginPath);
 
         if (response.getHeader("Content-Type").equals("myHeader")) {
-            Assert.fail("Fake Request Accept-Header was returned in Response Content-Type (without server-side validation).");
+            Assert.fail("Fake Request Accept-Header was reflected in Response Content-Type. Missing server-side validation?");
         }
     }
 

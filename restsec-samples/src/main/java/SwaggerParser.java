@@ -1,6 +1,6 @@
 
 //IDEA: Scanning REST APIs is complicated without documentation. This class reads Swagger Documentations
-// in the json Format, parses them and creates and attack set for the scanner.
+//in the json Format, parses them and creates and attack set for the scanner.
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -16,14 +16,18 @@ public class SwaggerParser {
     private String host;
     private String basePath;
 
-    private String file = "swagger-sample.json";
+    private static String filepath;
 
     private JSONObject pathsObj;
     private Set<String> attackSet = new HashSet<>();
-    
+
+    public SwaggerParser(String file) {
+        filepath = file;
+    }
+
     public static void main (String[] args){
-        SwaggerParser test = new SwaggerParser();
-        test.parseSwaggerJSON();
+        SwaggerParser test = new SwaggerParser("swagger-sample.json");
+        test.parseSwaggerJSON(filepath);
 
         try {
             Thread.sleep(1500);
@@ -34,10 +38,10 @@ public class SwaggerParser {
         test.printAttackSet();
     }
 
-    // jsonObj > pathsObj > methodsObj
+    // jsonObj > pathsObj > httpVerbObj
 
     @SuppressWarnings("unchecked")
-    private void parseSwaggerJSON() {
+    private void parseSwaggerJSON(String file) {
         JSONParser jsonParser = new JSONParser();
 
         try {
@@ -68,8 +72,8 @@ public class SwaggerParser {
 
     @SuppressWarnings("unchecked")
     private Set<String> createAttackSetForPath(JSONObject object, String path) {
-        JSONObject methodObj = (JSONObject) object.get(path);
-        Iterator<String> it = methodObj.keySet().iterator();
+        JSONObject httpVerbObj = (JSONObject) object.get(path);
+        Iterator<String> it = httpVerbObj.keySet().iterator();
 
         while (it.hasNext()){
             switch (it.next()) {
@@ -95,11 +99,11 @@ public class SwaggerParser {
         return attackSet;
     }
 
-    public void addToAttackSet(String string) {
+    private void addToAttackSet(String string) {
         attackSet.add(string);
     }
 
-    public void printAttackSet(){
+    private void printAttackSet(){
         System.err.println("\n>>> POSSIBLE ATTACKS <<<");
         Iterator<String> it = attackSet.iterator();
         while (it.hasNext()) {
