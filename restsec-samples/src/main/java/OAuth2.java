@@ -1,6 +1,4 @@
-import io.restassured.RestAssured;
 import io.restassured.authentication.AuthenticationScheme;
-import io.restassured.authentication.OAuthSignature;
 import io.restassured.authentication.PreemptiveOAuth2HeaderScheme;
 import io.restassured.builder.ResponseBuilder;
 import io.restassured.filter.Filter;
@@ -8,7 +6,6 @@ import io.restassured.filter.FilterContext;
 import io.restassured.response.Response;
 import io.restassured.specification.FilterableRequestSpecification;
 import io.restassured.specification.FilterableResponseSpecification;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static io.restassured.RestAssured.given;
@@ -18,7 +15,7 @@ import static org.junit.Assert.assertThat;
 
 public class OAuth2 {
 
-    String accessToken = "";
+    private String accessToken = "";
 
     @Test
     //TODO: Continue with OAuth2 here
@@ -38,7 +35,7 @@ public class OAuth2 {
 
     @Test
     public void oauth2_works_with_preemptive_header_signing() {
-        final String accessToken = "accessToken";
+        accessToken = "accessToken";
 
         given().
                 auth().preemptive().oauth2(accessToken).

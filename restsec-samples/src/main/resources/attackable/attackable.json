@@ -1,0 +1,1 @@
+{"\/users":["POST"],"\/stores\/order":["POST"],"\/users\/createWithArray":["POST"],"\/pets":["POST","PUT"],"\/users\/createWithList":["POST"],"\/pets\/{petId}":["POST","DELETE"],"\/users\/{username}":["DELETE","PUT"],"\/stores\/order\/{orderId}":["DELETE"]}
