@@ -4,6 +4,7 @@
 
 ## Overview
 - [Description](#Description)
+- [Architecture](restsec-architecture-2.png)
 - [Supported OWASP Top 10 (2013) Vulnerabilities](#Supported_Vulnerabilities)
 - [Sources](#Sources)
 - [Usage](#Usage)
