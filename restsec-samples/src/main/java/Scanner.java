@@ -20,6 +20,7 @@ public class Scanner {
 
     private JSONObject attackSet = new JSONObject();
     private JSONObject payloads = new JSONObject();
+    private CallbackPage callbackPage = new CallbackPage();
 
     public Scanner(String attackSetFile, String payloadsFile) {
         JSONParser parser = new JSONParser();
@@ -58,6 +59,7 @@ public class Scanner {
     public void scanAll(){
         System.out.println("Scanner: Trying XSS payloads ...");
         scanForXSS();
+        System.out.println("Scanner: XSS: Done.");
     }
 
     private void scanForXSS(){
@@ -82,12 +84,24 @@ public class Scanner {
                     // unescaping forward slashes for payload: replacing \/ with /
                     String payload = payloadObject.toString().replace("\\/", "/");
 
-                    // Filtering endpoints with curly brackets (numbers)
+                    // Filtering endpoints with curly brackets (numbers) - Not supported yet.
                     if (resource.contains("{")) {
                         System.err.println("Scanner: Skipping " + resource + " (due to curly bracket). Not yet implemented!");
                     } else {
-                        System.out.println("Scanner: Trying: " + httpVerb + " on " + resource + " with " + payloadName);
-                        forgeRequest(resource, payload, 200);
+                        System.out.print("Scanner: Trying: " + httpVerb + " on " + resource + " with " + payloadName + " ... ");
+                        try {
+                            forgeRequest(resource, payload, 200);
+                            System.out.println("200 OK");
+
+                            // is jetty started and listening?
+
+                            // reload to execute potentially stored payload
+                            // callbackPage.reloadResource();
+
+                        } catch (AssertionError e) {
+                            System.err.println(" Server Status Code does not match expected Code.");
+                        }
+
                     }
 
                 }

@@ -5,7 +5,7 @@ public class Controller {
 
     public static void main (String[] args) {
         Parser parser = new Parser();
-        parser.parseSwaggerJSON("docs_swagger/swagger-sample.json", true);
+        parser.parseSwaggerJSON("docs_swagger/swagger-sample.json", false);
         Scanner scanner = new Scanner("attackable/attackable.json","payloads/xss.json");
         scanner.scanAll();
     }
