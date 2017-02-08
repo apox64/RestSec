@@ -22,6 +22,8 @@ public class Scanner {
     private JSONObject payloads = new JSONObject();
     private CallbackPage callbackPage = new CallbackPage();
 
+    private String baseURL = "http://127.0.0.1:80";
+
     public Scanner(String attackSetFile, String payloadsFile) {
         JSONParser parser = new JSONParser();
         try{
@@ -36,7 +38,7 @@ public class Scanner {
         }
     }
 
-    private static void loadProperties() throws IOException {
+    private void loadProperties() throws IOException {
         Properties properties = new Properties();
 
         try(InputStream stream = Scanner.class.getClassLoader().getResourceAsStream("config.properties")){
@@ -48,11 +50,13 @@ public class Scanner {
         RestAssured.port = Integer.parseInt(properties.getProperty("port"));
         RestAssured.basePath = properties.getProperty("base-path");
 
+        this.baseURL = properties.getProperty("base-uri") + ":" + properties.getProperty("port");// + properties.getProperty("base-path");
+
         if (!properties.getProperty("proxy_ip").equals("")) {
             RestAssured.proxy(properties.getProperty("proxy_ip"), Integer.parseInt(properties.getProperty("proxy_port")));
         }
 
-        System.out.println(">>> Properties loaded.");
+        System.out.println("Scanner: Properties loaded.");
 
     }
 
@@ -62,8 +66,11 @@ public class Scanner {
         System.out.println("Scanner: XSS: Done.");
     }
 
-    private void scanForXSS(){
+    public void scanForXSS(){
         //iterate through all possible combinations
+
+        //Where the executed payloads will call back to.
+        callbackPage.startTestPageServer();
 
         Iterator resourceIterator = attackSet.keySet().iterator();
 
@@ -86,20 +93,17 @@ public class Scanner {
 
                     // Filtering endpoints with curly brackets (numbers) - Not supported yet.
                     if (resource.contains("{")) {
-                        System.err.println("Scanner: Skipping " + resource + " (due to curly bracket). Not yet implemented!");
+                        System.out.println("Scanner: Skipping " + resource + " (Curly bracket not yet implemented!");
                     } else {
                         System.out.print("Scanner: Trying: " + httpVerb + " on " + resource + " with " + payloadName + " ... ");
                         try {
                             forgeRequest(resource, payload, 200);
                             System.out.println("200 OK");
 
-                            // is jetty started and listening?
-
-                            // reload to execute potentially stored payload
-                            // callbackPage.reloadResource();
+                            callbackPage.reloadResource(baseURL+resource);
 
                         } catch (AssertionError e) {
-                            System.err.println(" Server Status Code does not match expected Code.");
+                            System.err.println(" Rejected. (Server Status Code does not match expected Code)");
                         }
 
                     }
@@ -110,13 +114,16 @@ public class Scanner {
 
         }
 
+        //Stopping the server again.
+        callbackPage.stopTestPageServer();
+
     }
 
     //create payload DONE
     //inject payload DONE
-    //TODO: Continue Here
     //execute payload
     // --> 1. open jetty server
+    //TODO: Continue Here
     // --> 2. refresh desired page (selenium? webtester?)
     //evaluate result (jetty server log)
 
