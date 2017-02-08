@@ -41,7 +41,7 @@ public class Parser {
     */
 
     @SuppressWarnings("unchecked")
-    public void parseSwaggerJSON(String file) {
+    public void parseSwaggerJSON(String file, boolean bruteforce) {
         JSONParser jsonParser = new JSONParser();
 
         try {
@@ -57,14 +57,18 @@ public class Parser {
             System.out.println("Host: \t\t\t\t" + host);
             System.out.println("Basepath: \t\t\t" + basePath);
 
-            writeAttackSetToFile(createAttackSetJSON(pathsObj));
+            if (bruteforce) {
+                writeAttackSetToFile(createBruteForceAttackSetJSON(pathsObj));
+            } else {
+                writeAttackSetToFile(createAttackSetJSON(pathsObj));
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void parseSpringJSON(String file){
+    public void parseSpringJSON(String file, boolean bruteforce){
     //TODO: Not yet implemented. Future release?
     }
 
@@ -119,6 +123,25 @@ public class Parser {
 
         }
         System.out.println("Parser: "+attackCounter + " possible attack points found.");
+        return attackSet;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject createBruteForceAttackSetJSON(JSONObject pathsObject) {
+        JSONObject attackSet = new JSONObject();
+        Iterator<String> iterator = pathsObject.keySet().iterator();
+
+        while (iterator.hasNext()) {
+            String currentPath = iterator.next();
+            JSONArray array = new JSONArray();
+            array.add("POST");
+            array.add("PATCH");
+            array.add("PUT");
+            array.add("DELETE");
+            attackSet.put(currentPath, array);
+        }
+
+        System.out.println("Parser: attackSet created for bruteforcing (size: "+pathsObject.size() * 4+")");
         return attackSet;
     }
 

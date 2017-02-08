@@ -57,10 +57,10 @@ public class Scanner {
 
     public void scanAll(){
         System.out.println("Scanner: Trying XSS payloads ...");
-        scanXSS();
+        scanForXSS();
     }
 
-    private void scanXSS(){
+    private void scanForXSS(){
         //iterate through all possible combinations
 
         Iterator resourceIterator = attackSet.keySet().iterator();
@@ -81,10 +81,10 @@ public class Scanner {
 
                     // unescaping forward slashes for payload: replacing \/ with /
                     String payload = payloadObject.toString().replace("\\/", "/");
-                    
+
                     // Filtering endpoints with curly brackets (numbers)
                     if (resource.contains("{")) {
-                        System.out.println("Scanner: Skipping " + resource + " (curly bracket). Fix this issue!");
+                        System.err.println("Scanner: Skipping " + resource + " (due to curly bracket). Not yet implemented!");
                     } else {
                         System.out.println("Scanner: Trying: " + httpVerb + " on " + resource + " with " + payloadName);
                         forgeRequest(resource, payload, 200);
@@ -96,12 +96,15 @@ public class Scanner {
 
         }
 
-        //create payload
-
-        //inject payload
-        //refresh desired page (selenium? webtester?)
-        //evaluate result (jetty server log)
     }
+
+    //create payload DONE
+    //inject payload DONE
+    //TODO: Continue Here
+    //execute payload
+    // --> 1. open jetty server
+    // --> 2. refresh desired page (selenium? webtester?)
+    //evaluate result (jetty server log)
 
     private void forgeRequest(String targetEndpoint, String payload, int expectedResponseCode) {
         RestAssured.basePath = "";
@@ -116,7 +119,5 @@ public class Scanner {
                 statusCode(expectedResponseCode);
 
     }
-
-
 
 }

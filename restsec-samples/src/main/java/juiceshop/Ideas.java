@@ -1,3 +1,4 @@
+package juiceshop;
 
 public class Ideas {
 

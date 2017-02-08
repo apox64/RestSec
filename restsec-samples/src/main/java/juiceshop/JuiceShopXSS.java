@@ -1,3 +1,5 @@
+package juiceshop;
+
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.eclipse.jetty.server.Handler;

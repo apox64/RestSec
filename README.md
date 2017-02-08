@@ -23,7 +23,7 @@ Some of the following common security vulnerabilities categories __can't be prop
 | # | Name | Supported | Method |
 |:---:|:---|:---:|:---|
 |A1|Injection|maybe|Common SQLi Payloads, but there are other tools for SQLi|
-|A2|Broken Authentication and Session Management|planned|Basic Authentication, OAuth2 Session Management (Tokens), Are Session Cookies Returned, that shouldn't (jesessionid)?|
+|A2|Broken Authentication and Session Management|planned|Basic Authentication, juiceshop.OAuth2 Session Management (Tokens), Are Session Cookies Returned, that shouldn't (jesessionid)?|
 |A3|Cross-Site Scripting (XSS)|planned|Injecting scripts via JSON elements|
 |A4|Insecure Direct Object References|no|-|
 |A5|Security Misconfiguration|no|-|

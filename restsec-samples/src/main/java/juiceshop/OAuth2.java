@@ -1,3 +1,5 @@
+package juiceshop;
+
 import io.restassured.authentication.AuthenticationScheme;
 import io.restassured.authentication.PreemptiveOAuth2HeaderScheme;
 import io.restassured.builder.ResponseBuilder;
@@ -18,7 +20,7 @@ public class OAuth2 {
     private String accessToken = "";
 
     @Test
-    //TODO: Continue with OAuth2 here
+    //TODO: Continue with juiceshop.OAuth2 here
     public void oAuth2() {
         given().
                 auth().

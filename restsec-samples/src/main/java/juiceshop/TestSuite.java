@@ -1,3 +1,7 @@
+package juiceshop;
+
+import juiceshop.JuiceShopBasic;
+import juiceshop.JuiceShopXSS;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
