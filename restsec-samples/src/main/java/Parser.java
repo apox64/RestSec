@@ -19,8 +19,6 @@ public class Parser {
     private String host;
     private String basePath;
 
-    //private static String filepath = "docs_swagger/swagger-sample.json";
-
     private JSONObject pathsObj;
 
     //public Parser(String filename) {

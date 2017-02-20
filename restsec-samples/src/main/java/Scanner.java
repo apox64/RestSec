@@ -28,10 +28,10 @@ public class Scanner {
         JSONParser parser = new JSONParser();
         try{
             attackSet = (JSONObject) parser.parse(new FileReader(getClass().getClassLoader().getResource(attackSetFile).getFile()));
-            System.out.println("Scanner: attackSet loaded from file: "+attackSetFile);
+            System.out.println("Scanner: "+attackSet.size()+" possible attacks loaded from file: "+attackSetFile);
             payloads = (JSONObject) parser.parse(new FileReader(getClass().getClassLoader().getResource(payloadsFile).getFile()));
-            System.out.println("Scanner: payloads loaded from file: "+payloadsFile);
-            System.out.println("Scanner: Loading properties (baseURI, port, basePath, proxy ip, proxy port) ...");
+            System.out.println("Scanner: "+payloads.size()+" payloads loaded from file: "+payloadsFile);
+            System.out.print("Scanner: Loading properties (baseURI, port, basePath, proxy ip, proxy port) ... ");
             loadProperties();
         } catch (Exception e) {
             e.printStackTrace();
@@ -56,7 +56,7 @@ public class Scanner {
             RestAssured.proxy(properties.getProperty("proxy_ip"), Integer.parseInt(properties.getProperty("proxy_port")));
         }
 
-        System.out.println("Scanner: Properties loaded.");
+        System.out.println("Done.");
 
     }
 
@@ -95,12 +95,14 @@ public class Scanner {
                     if (resource.contains("{")) {
                         System.out.println("Scanner: Skipping " + resource + " (Curly bracket not yet implemented!");
                     } else {
-                        System.out.print("Scanner: Trying: " + httpVerb + " on " + resource + " with " + payloadName + " ... ");
+                        System.out.print("Scanner: Trying: " + httpVerb + " on " + resource + " with \"" + payloadName + "\" ... ");
                         try {
                             forgeRequest(resource, payload, 200);
-                            System.out.println("200 OK");
+                            System.out.println("Accepted. (200 OK)");
 
-                            callbackPage.reloadResource(baseURL+resource);
+                            //callbackPage.reloadResource(baseURL+resource);
+                            //callbackPage.reloadResource(baseURL);
+                            callbackPage.reloadResource(baseURL);
 
                         } catch (AssertionError e) {
                             System.err.println(" Rejected. (Server Status Code does not match expected Code)");
@@ -123,8 +125,8 @@ public class Scanner {
     //inject payload DONE
     //execute payload
     // --> 1. open jetty server
-    //TODO: Continue Here
     // --> 2. refresh desired page (selenium? webtester?)
+    //TODO: Continue Here
     //evaluate result (jetty server log)
 
     private void forgeRequest(String targetEndpoint, String payload, int expectedResponseCode) {
