@@ -10,6 +10,7 @@ public class Controller {
         Logger logger = Logger.getLogger(Controller.class.getName());
         logger.info("RestSec started.");
 
+        // Starting a Parser
         Parser parser = new Parser();
         parser.parseSwaggerJSON("docs_swagger/swagger-juiceshop-short.json", false);
 
@@ -20,9 +21,11 @@ public class Controller {
             e.printStackTrace();
         }
 
+        // Starting a Scanner
         Scanner scanner = new Scanner("attackable/attackable.json","payloads/xss.json");
         scanner.scanAll();
 
+        // Starting an Evaluator
         Evaluator evaluator = new Evaluator();
         try {
             evaluator.evaluateLogfile();

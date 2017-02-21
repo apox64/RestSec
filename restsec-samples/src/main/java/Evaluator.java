@@ -28,7 +28,7 @@ public class Evaluator {
         if ((line = bufferedReader.readLine()) != null)
         {
             if (line.contains("GET //0.0.0.0:5555/Cookie:")) {
-                System.out.print("Evaluator: Success! Payload executed and called back! Content: ");
+                System.out.print("Evaluator: Success! XSS Payload executed and called back! Content: ");
                 if (line.contains("token")) {
                     Pattern p = Pattern.compile("token=\\S*");
                     Matcher m = p.matcher(line);

@@ -100,8 +100,6 @@ public class Scanner {
                             forgeRequest(resource, payload, 200);
                             System.out.println("Accepted. (200 OK)");
 
-                            //callbackPage.reloadResource(baseURL+resource);
-                            //callbackPage.reloadResource(baseURL);
                             callbackPage.reloadResource(baseURL);
 
                         } catch (AssertionError ae) {
