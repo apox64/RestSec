@@ -66,7 +66,7 @@ public class Scanner {
         System.out.println("Scanner: XSS: Done.");
     }
 
-    public void scanForXSS(){
+    public void scanForXSS() {
         //iterate through all possible combinations
 
         //Where the executed payloads will call back to.
@@ -104,7 +104,7 @@ public class Scanner {
                             //callbackPage.reloadResource(baseURL);
                             callbackPage.reloadResource(baseURL);
 
-                        } catch (AssertionError e) {
+                        } catch (AssertionError ae) {
                             System.err.println(" Rejected. (Server Status Code does not match expected Code)");
                         }
 
@@ -132,14 +132,20 @@ public class Scanner {
     private void forgeRequest(String targetEndpoint, String payload, int expectedResponseCode) {
         RestAssured.basePath = "";
 
-        given().
-                request().
-                body(payload).
-                contentType(ContentType.JSON).
-         when().
-                put(targetEndpoint).
-         then().
-                statusCode(expectedResponseCode);
+        try {
+            given().
+                    request().
+                    body(payload).
+                    contentType(ContentType.JSON).
+                    when().
+                    put(targetEndpoint).
+                    then().
+                    statusCode(expectedResponseCode);
+        } catch (Exception e) {
+            System.err.println("Could not send request. Is proxy on?");
+            System.exit(0);
+        }
+
 
     }
 

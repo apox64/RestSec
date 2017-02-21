@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.logging.Logger;
 
 public class Controller {
@@ -21,6 +22,14 @@ public class Controller {
 
         Scanner scanner = new Scanner("attackable/attackable.json","payloads/xss.json");
         scanner.scanAll();
+
+        Evaluator evaluator = new Evaluator();
+        try {
+            evaluator.evaluateLogfile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         logger.info("RestSec terminated.");
     }
 
