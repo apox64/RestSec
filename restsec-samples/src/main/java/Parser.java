@@ -6,14 +6,22 @@
 // Spring (no)
 // ...
 
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.*;
-import java.util.Iterator;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class Parser {
+import static io.restassured.RestAssured.*;
+
+public class Parser implements Runnable {
+
+    private String baseURL = "http://127.0.0.1:80";
 
     private String version;
     private String host;
@@ -21,42 +29,48 @@ public class Parser {
 
     private JSONObject pathsObj;
 
-    //public Parser(String filename) {
-        //filepath = filename;
-    //}
+    private String pathToSwaggerJSONFile = "";
+    private boolean useAllPossibleHTTPMethodsForAttack = false;
+    private String entryRessourceHATEOAS = "";
 
-    /*
-    public static void main (String[] args){
-        Parser swaggerParser = new Parser(filepath);
-        swaggerParser.parseSwaggerJSON(filepath);
+    public Parser(String pathToSwaggerJSONFile, boolean useAllPossibleHTTPMethodsForAttack) {
+        this.pathToSwaggerJSONFile = pathToSwaggerJSONFile;
+        this.useAllPossibleHTTPMethodsForAttack = useAllPossibleHTTPMethodsForAttack;
+    }
 
-        try {
-            Thread.sleep(1500);
-        } catch (Exception e) {
-            e.printStackTrace();
+    public Parser(String entryRessourceHATEOAS) throws IOException {
+        this.entryRessourceHATEOAS = entryRessourceHATEOAS;
+        loadProperties();
+    }
+
+    public void run() {
+        if (pathToSwaggerJSONFile.isEmpty()) {
+            //run HATEOAS Parsing
+            discoverLinksForHATEOAS(this.entryRessourceHATEOAS);
+        } else {
+            //run Swagger Parsing
+            parseSwaggerJSON(this.pathToSwaggerJSONFile, this.useAllPossibleHTTPMethodsForAttack);
         }
     }
-    */
 
     @SuppressWarnings("unchecked")
-    public void parseSwaggerJSON(String file, boolean bruteforce) {
+    private void parseSwaggerJSON(String file, boolean useAllHTTPMethods) {
         JSONParser jsonParser = new JSONParser();
 
         try {
             JSONObject jsonObj = (JSONObject) jsonParser.parse(new FileReader(getClass().getClassLoader().getResource(file).getFile()));
 
-            version = (String) jsonObj.get("swagger");
-            host = (String) jsonObj.get("host");
-            basePath = (String) jsonObj.get("basePath");
-
-            pathsObj = (JSONObject) jsonObj.get("paths");
+            this.version = (String) jsonObj.get("swagger");
+            this.host = (String) jsonObj.get("host");
+            this.basePath = (String) jsonObj.get("basePath");
+            this.pathsObj = (JSONObject) jsonObj.get("paths");
 
             System.out.println("Swagger Version: \t" + version);
             System.out.println("Host: \t\t\t\t" + host);
             System.out.println("Basepath: \t\t\t" + basePath);
 
-            if (bruteforce) {
-                writeAttackSetToFile(createBruteForceAttackSetJSON(pathsObj));
+            if (useAllHTTPMethods) {
+                writeAttackSetToFile(createCompleteHTTPMethodAttackSetJSON(pathsObj));
             } else {
                 writeAttackSetToFile(createAttackSetJSON(pathsObj));
             }
@@ -66,9 +80,74 @@ public class Parser {
         }
     }
 
-    public void parseSpringJSON(String file, boolean bruteforce){
-    //TODO: Not yet implemented. Future release?
+    private void discoverLinksForHATEOAS(String entryRessource){
+        JSONObject pathsObj = new JSONObject();
+        System.out.println("Parser: Starting endpoint discovery for HATEOAS on "+entryRessource+" ...");
+
+        //TODO: Code here ...
+
+        // how does REST endpoint look like?
+
+        String responseBody = get(entryRessource).asString();
+
+        Pattern allURLs = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)");
+        Matcher mAllURLs = allURLs.matcher(responseBody);
+
+
+        List<String> allMatches = new ArrayList<String>();
+        Matcher m = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)").matcher(responseBody);
+        while (m.find()) {
+            allMatches.add(m.group());
+        }
+
+        for(int i = 0; i < allMatches.size(); i++) {
+            System.out.println((i+1) + " : " + allMatches.get(i));
+        }
+
+        System.out.println("Removing duplicates ... ");
+        Set<String> hs = new HashSet<>();
+        hs.addAll(allMatches);
+        allMatches.clear();
+        allMatches.addAll(hs);
+
+        for(int i = 0; i < allMatches.size(); i++) {
+            System.out.println((i+1) + " : " + allMatches.get(i));
+        }
+
+        System.out.println("Removing external URLs ...");
+        
+
+        //TODO : Currently ending program here
+        System.exit(0);
+
+
+        System.out.println("Matcher found "+mAllURLs.groupCount()+" URLs in Response");
+        while(mAllURLs.find()) {
+            for (int i = 0; i < mAllURLs.groupCount(); i++) {
+                System.out.println((i+1) + " : " + mAllURLs.group(i));
+            }
+        }
+
+        //extract resource endpoint
+        //check if already in list
+
+
+        //if there are no matches end and print attackset (if empty --> you sure you use HATEOAS?)
+        boolean b = mAllURLs.matches();
+
+        //if there are matches, write them to attack set and repeat
+
+        writeAttackSetToFile(createAttackSetJSON(pathsObj));
+
+        //call entryRessource and check if there is any link on the same domain/host (if not, abort "You sure you use HATEOAS?")
+        //find all links in response from entryRessource on the same domain/host
+        //check if found ressource is valid (by calling it)
+        //perform checks if the entry is already in the attackset or not (if not, add it)
+        //all methods have to be tested since there is not documentation (creating the attackset)
+        //done.
     }
+
+    //Supporting Methods:
 
     @SuppressWarnings("unchecked")
     private JSONObject createAttackSetJSON(JSONObject pathsObject) {
@@ -89,26 +168,18 @@ public class Parser {
                         break;
                     case "post":
                         array.add("POST");
-                        //attackSet.put(currentPath, new JSONObject().put(currentPath, "POST")).toString();
-                        //temp.put(currentPath, "POST");
                         attackCounter++;
                         break;
                     case "patch":
                         array.add("PATCH");
-                        //attackSet.put(currentPath, new JSONObject().put(currentPath, "PATCH"));
-                        //temp.put(currentPath,"PATCH");
                         attackCounter++;
                         break;
                     case "put":
                         array.add("PUT");
-                        //attackSet.put(currentPath, new JSONObject().put(currentPath, "PUT"));
-                        //temp.put(currentPath,"PUT");
                         attackCounter++;
                         break;
                     case "delete":
                         array.add("DELETE");
-                        //attackSet.put(currentPath, new JSONObject().put(currentPath, "DELETE"));
-                        //temp.put(currentPath,"DELETE");
                         attackCounter++;
                         break;
                 }
@@ -125,7 +196,7 @@ public class Parser {
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject createBruteForceAttackSetJSON(JSONObject pathsObject) {
+    private JSONObject createCompleteHTTPMethodAttackSetJSON(JSONObject pathsObject) {
         JSONObject attackSet = new JSONObject();
         Iterator<String> iterator = pathsObject.keySet().iterator();
 
@@ -156,6 +227,35 @@ public class Parser {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+    }
+
+    private void loadProperties() throws IOException {
+        System.out.println("Controller: Loading properties ... ");
+        Properties properties = new Properties();
+
+        try(InputStream stream = Scanner.class.getClassLoader().getResourceAsStream("config.properties")){
+            properties.load(stream);
+        }
+
+        // Load config
+        RestAssured.baseURI = properties.getProperty("base-uri");
+        System.out.println("baseURI : "+RestAssured.baseURI);
+        RestAssured.port = Integer.parseInt(properties.getProperty("port"));
+        System.out.println("port : "+RestAssured.port);
+        RestAssured.basePath = properties.getProperty("base-path");
+        System.out.println("basePath : "+RestAssured.basePath);
+
+        this.baseURL = properties.getProperty("base-uri") + ":" + properties.getProperty("port");// + properties.getProperty("base-path");
+
+        if (!properties.getProperty("proxy_ip").equals("")) {
+            RestAssured.proxy(properties.getProperty("proxy_ip"), Integer.parseInt(properties.getProperty("proxy_port")));
+            System.out.println("proxy : "+RestAssured.proxy);
+        } else {
+            System.out.println("proxy : no proxy set in config");
+        }
+
+        System.out.println("Done.");
 
     }
 

@@ -31,7 +31,7 @@ public class Scanner {
             System.out.println("Scanner: "+attackSet.size()+" possible attacks loaded from file: "+attackSetFile);
             payloads = (JSONObject) parser.parse(new FileReader(getClass().getClassLoader().getResource(payloadsFile).getFile()));
             System.out.println("Scanner: "+payloads.size()+" payloads loaded from file: "+payloadsFile);
-            System.out.print("Scanner: Loading properties (baseURI, port, basePath, proxy ip, proxy port) ... ");
+            System.err.print("Scanner: Loading properties (baseURI, port, basePath, proxy ip, proxy port) ... ");
             loadProperties();
         } catch (Exception e) {
             e.printStackTrace();
@@ -39,6 +39,7 @@ public class Scanner {
     }
 
     private void loadProperties() throws IOException {
+        System.err.println("DUPLICATE CODE! (Save to remove?)");
         Properties properties = new Properties();
 
         try(InputStream stream = Scanner.class.getClassLoader().getResourceAsStream("config.properties")){
