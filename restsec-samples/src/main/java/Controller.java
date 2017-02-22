@@ -26,7 +26,16 @@ public class Controller {
 
         //Starting a Parser with desired arguments (Thread)
         //Thread parser = new Thread(new Parser("docs_swagger/swagger-juiceshop-short.json", false));
-        Thread parser = new Thread(new Parser("http://192.168.99.100:3000/rest/product/search?q=undefined"));
+
+        // @TODO: Change this entry point application specific (currently running:
+        // Swagger: JuiceShop (with (pseudo) Swagger Documentation)
+        // HATEOAS: https://github.com/corsoft/spring-hateoas-demo
+        String entryPoint = "http://localhost:10001/albums/";
+
+        // Parser:
+        // Swagger: String link, bool bruteforce
+        // HATEOAS: String entryPoint (Parser will follow links)
+        Thread parser = new Thread(new Parser(entryPoint));
         System.err.println(">>> Controller: Starting parser thread ... ");
         parser.start();
         // Waiting for Parser to finish
