@@ -32,12 +32,13 @@ public class Scanner {
             payloads = (JSONObject) parser.parse(new FileReader(getClass().getClassLoader().getResource(payloadsFile).getFile()));
             System.out.println("Scanner: "+payloads.size()+" payloads loaded from file: "+payloadsFile);
             System.err.print("Scanner: Loading properties (baseURI, port, basePath, proxy ip, proxy port) ... ");
-            loadProperties();
+            //loadProperties();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    /*
     private void loadProperties() throws IOException {
         System.err.println("DUPLICATE CODE! (Save to remove?)");
         Properties properties = new Properties();
@@ -60,6 +61,7 @@ public class Scanner {
         System.out.println("Done.");
 
     }
+    */
 
     public void scanAll(){
         System.out.println("Scanner: Trying XSS payloads ...");

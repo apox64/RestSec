@@ -40,7 +40,7 @@ public class Parser implements Runnable {
 
     public Parser(String entryRessourceHATEOAS) throws IOException {
         this.entryRessourceHATEOAS = entryRessourceHATEOAS;
-        loadProperties();
+        //loadProperties();
     }
 
     public void run() {
@@ -84,56 +84,65 @@ public class Parser implements Runnable {
         JSONObject pathsObj = new JSONObject();
         System.out.println("Parser: Starting endpoint discovery for HATEOAS on "+entryRessource+" ...");
 
-        //TODO: Code here ...
-
-        // how does REST endpoint look like?
+        Pattern regexPatternFullURL = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\/([-a-zA-Z0-9@:%_\\+.~#?&//=]*)");
+        Pattern regexPatternDomainPortOnly = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}(:?\\d+)*\\/");
 
         String responseBody = get(entryRessource).asString();
 
-        Pattern allURLs = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)");
-        Matcher mAllURLs = allURLs.matcher(responseBody);
+        //TODO: Code here ...
 
-
-        List<String> allMatches = new ArrayList<String>();
-        Matcher m = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)").matcher(responseBody);
+        //All URLs in Response (unique)
+        Set<String> allUniqueURLs = new HashSet<String>();
+        Matcher m = regexPatternFullURL.matcher(responseBody);
         while (m.find()) {
-            allMatches.add(m.group());
+            allUniqueURLs.add(m.group());
         }
 
-        for(int i = 0; i < allMatches.size(); i++) {
-            System.out.println((i+1) + " : " + allMatches.get(i));
+        System.out.println(allUniqueURLs.size() + " unique URLs found.");
+        int c = 1;
+        for(String match : allUniqueURLs) {
+            System.out.println(c + " : " + match);
+            c++;
         }
 
-        System.out.println("Removing duplicates ... ");
-        Set<String> hs = new HashSet<>();
-        hs.addAll(allMatches);
-        allMatches.clear();
-        allMatches.addAll(hs);
+        //All URLs that are located on the entryRessource domain (unique)
+        Matcher ma = regexPatternDomainPortOnly.matcher(entryRessource);
+        ma.find();
+        String entryRessourceDomainAndPortOnly = ma.group();
 
-        for(int i = 0; i < allMatches.size(); i++) {
-            System.out.println((i+1) + " : " + allMatches.get(i));
+        //System.out.println("Entry Ressource: " + entryRessourceDomainAndPortOnly);
+
+
+        Set<String> allRessourceURLs = new HashSet<String>();
+        int count = 0;
+        for(String s : allUniqueURLs) {
+            Matcher mat = regexPatternDomainPortOnly.matcher(s);
+            while (mat.find()) {
+                if (mat.group().equals(entryRessourceDomainAndPortOnly)) {
+                    System.out.println("HATEOAS Link found: " + mat.group());
+                    allRessourceURLs.add(mat.group());
+                    count++;
+                }
+            }
         }
 
-        System.out.println("Removing external URLs ...");
-        
+        if (count == 0) {
+            System.err.println("Parser: No HATEOAS Link found for the entry URL you entered. Are you sure the given entry point follows HATEOAS?");
+        } else {
+            System.out.println(count + " HATEOAS Links found under "+entryRessource);
+        }
 
         //TODO : Currently ending program here
         System.exit(0);
 
 
-        System.out.println("Matcher found "+mAllURLs.groupCount()+" URLs in Response");
-        while(mAllURLs.find()) {
-            for (int i = 0; i < mAllURLs.groupCount(); i++) {
-                System.out.println((i+1) + " : " + mAllURLs.group(i));
-            }
-        }
 
         //extract resource endpoint
         //check if already in list
 
 
         //if there are no matches end and print attackset (if empty --> you sure you use HATEOAS?)
-        boolean b = mAllURLs.matches();
+        //boolean b = mAllURLs.matches();
 
         //if there are matches, write them to attack set and repeat
 
@@ -230,6 +239,7 @@ public class Parser implements Runnable {
 
     }
 
+    /*
     private void loadProperties() throws IOException {
         System.out.println("Controller: Loading properties ... ");
         Properties properties = new Properties();
@@ -258,5 +268,6 @@ public class Parser implements Runnable {
         System.out.println("Done.");
 
     }
+    */
 
 }
