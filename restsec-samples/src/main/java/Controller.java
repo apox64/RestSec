@@ -7,6 +7,13 @@ import java.util.logging.Logger;
 
 public class Controller {
 
+    private static boolean useHATEOAS = false;
+    private static boolean useSwagger = false;
+    private static String entryPoint = "";
+    private static String swaggerLocation = "";
+    private static boolean bruteforce = false;
+
+
     public Controller() {
         try {
             loadProperties();
@@ -25,17 +32,28 @@ public class Controller {
         new Controller();
 
         //Starting a Parser with desired arguments (Thread)
-        //Thread parser = new Thread(new Parser("docs_swagger/swagger-juiceshop-short.json", false));
 
         // @TODO: Change this entry point application specific (currently running:
         // Swagger: JuiceShop (with (pseudo) Swagger Documentation)
         // HATEOAS: https://github.com/corsoft/spring-hateoas-demo
-        String entryPoint = "http://localhost:10001/albums/";
 
         // Parser:
         // Swagger: String link, bool bruteforce
         // HATEOAS: String entryPoint (Parser will follow links)
-        Thread parser = new Thread(new Parser(entryPoint));
+
+        Thread parser = null;
+
+        if (useSwagger && !useHATEOAS) {
+            System.out.println("Controller: Using Swagger Documentation : "+swaggerLocation+" (Bruteforce: "+bruteforce+")");
+            parser = new Thread(new Parser(swaggerLocation, bruteforce));
+        } else if (!useSwagger && useHATEOAS) {
+            System.out.println("Controller: Using HATEOAS. Starting on : "+entryPoint);
+            parser = new Thread(new Parser(entryPoint));
+        } else {
+            System.err.println("Controller: config.properties doesn't make sense.");
+            System.exit(0);
+        }
+
         System.err.println(">>> Controller: Starting parser thread ... ");
         parser.start();
         // Waiting for Parser to finish
@@ -65,13 +83,14 @@ public class Controller {
             properties.load(stream);
         }
 
-        // Load config
+        // Load config for Rest-assured
+        System.out.print("Config for Rest-Assured: ");
         RestAssured.baseURI = properties.getProperty("base-uri");
-        System.out.println("baseURI : "+RestAssured.baseURI);
+        System.out.print("baseURI : "+RestAssured.baseURI);
         RestAssured.port = Integer.parseInt(properties.getProperty("port"));
-        System.out.println("port : "+RestAssured.port);
+        System.out.print(" port : "+RestAssured.port);
         RestAssured.basePath = properties.getProperty("base-path");
-        System.out.println("basePath : "+RestAssured.basePath);
+        System.out.println(" basePath : "+RestAssured.basePath);
 
         this.baseURL = properties.getProperty("base-uri") + ":" + properties.getProperty("port");// + properties.getProperty("base-path");
 
@@ -79,8 +98,15 @@ public class Controller {
             RestAssured.proxy(properties.getProperty("proxy_ip"), Integer.parseInt(properties.getProperty("proxy_port")));
             System.out.println("proxy : "+RestAssured.proxy);
         } else {
-            System.out.println("proxy : no proxy set in config");
+            System.out.println("proxy : no proxy set in config.properties");
         }
+
+        // Load config for scan modes and documentation type
+        useHATEOAS = Boolean.parseBoolean(properties.getProperty("useHATEOAS"));
+        useSwagger = Boolean.parseBoolean(properties.getProperty("useSwagger"));
+        entryPoint = properties.getProperty("entryPoint");
+        swaggerLocation = properties.getProperty("swaggerLocation");
+        bruteforce = Boolean.parseBoolean(properties.getProperty("bruteforce"));
 
         System.out.println("Done.");
 

@@ -6,11 +6,14 @@
 // Spring (working on it)
 // ...
 
+import org.apache.xerces.impl.xpath.regex.Match;
+import org.apache.xpath.operations.Bool;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,22 +32,22 @@ public class Parser implements Runnable {
 
     private String pathToSwaggerJSONFile = "";
     private boolean useAllPossibleHTTPMethodsForAttack = false;
-    private String entryRessourceHATEOAS = "";
+    private String entryResourceHATEOAS = "";
 
     public Parser(String pathToSwaggerJSONFile, boolean useAllPossibleHTTPMethodsForAttack) {
         this.pathToSwaggerJSONFile = pathToSwaggerJSONFile;
         this.useAllPossibleHTTPMethodsForAttack = useAllPossibleHTTPMethodsForAttack;
     }
 
-    public Parser(String entryRessourceHATEOAS) throws IOException {
-        this.entryRessourceHATEOAS = entryRessourceHATEOAS;
+    public Parser(String entryResourceHATEOAS) throws IOException {
+        this.entryResourceHATEOAS = entryResourceHATEOAS;
         //loadProperties();
     }
 
     public void run() {
         if (pathToSwaggerJSONFile.isEmpty()) {
             //run HATEOAS Parsing
-            discoverLinksForHATEOAS(this.entryRessourceHATEOAS);
+            discoverLinksForHATEOAS(this.entryResourceHATEOAS);
         } else {
             //run Swagger Parsing
             parseSwaggerJSON(this.pathToSwaggerJSONFile, this.useAllPossibleHTTPMethodsForAttack);
@@ -78,71 +81,133 @@ public class Parser implements Runnable {
         }
     }
 
-    //TODO: call this function recursively on itself until no new entries in global list appear (check this after each iteration)
-    private void discoverLinksForHATEOAS(String entryRessource){
+    private void discoverLinksForHATEOAS(String entryResource){
         JSONObject pathsObj = new JSONObject();
-        System.out.println("Parser: Starting endpoint discovery for HATEOAS on "+entryRessource+" ...");
+        System.out.println("Parser: Starting endpoint discovery for HATEOAS on "+entryResource+" ...");
 
-        Pattern regexPatternFullURL = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\/([-a-zA-Z0-9@:%_\\+.~#?&//=]*)");
-        Pattern regexPatternDomainPortOnly = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}(:?\\d+)*\\/");
+        //HashMap that gets filled for each call of getHATEOASLinks()
+        //String endpoint, Boolean isVisited
+        HashMap<String, Boolean> relevantURLs;
 
-        String responseBody = get(entryRessource).asString();
+        //init
+        relevantURLs = getHATEOASLinks(entryResource);
+        System.out.println("Parser: Adding entryResource ...");
+        relevantURLs.put(entryResource, true);
+        //System.out.println("Parser: HATEOAS Links found for entryPoint: " + relevantURLs.size());
 
-        //Find all URLs in Response (unique)
-        Set<String> allUniqueURLs = new HashSet<String>();
-        Matcher m = regexPatternFullURL.matcher(responseBody);
-        while (m.find()) {
-            allUniqueURLs.add(m.group());
+        //print
+        Iterator it = relevantURLs.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            System.out.println("  - " + pair.getKey() + " : " + pair.getValue());
+            //it.remove(); // avoids a ConcurrentModificationException
         }
 
-        System.out.println(allUniqueURLs.size() + " unique URLs found ...");
-        int c = 1;
-        for(String match : allUniqueURLs) {
-            System.out.println(c + " : " + match);
-            c++;
+        //TODO: CONTINUE HERE
+        /*
+        while contains value == false
+            get one key that contains value == false
+            put that into getHATEOASLinks()
+            merge result and relevantURLs
+            repeat until all values are true
+         */
+
+        while (relevantURLs.containsValue(false)) {
+            Iterator iterator = relevantURLs.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry)iterator.next();
+                //draft: relevantURLs.putAll(getHATEOASLinks(pair.getKey()), );
+            }
+
         }
 
-        //Find all relevant URLs that are located on the entryRessource domain (unique)
-        Matcher ma = regexPatternDomainPortOnly.matcher(entryRessource);
-        ma.find();
-        String entryRessourceDomainAndPortOnly = ma.group();
 
-        Set<String> allRessourceURLs = new HashSet<String>();
-        int count = 0;
-        for(String s : allUniqueURLs) {
-            Matcher mat = regexPatternDomainPortOnly.matcher(s);
-            while (mat.find()) {
-                if (mat.group().equals(entryRessourceDomainAndPortOnly)) {
-                    //System.out.println("HATEOAS Link found: " + mat.group());
-                    allRessourceURLs.add(mat.group());
-                    count++;
+        System.out.println("Parser: Creating AttackSet for : " + relevantURLs.size() + " relevant URLs.");
+        // TODO: CURRENTLY ENDING PROGRAM HERE (TESTING)
+        System.exit(0);
+
+        /*
+
+        //Adding the entryResource itself
+        allRelevantURLs.add(entryResource);
+        numberOfRelevantURLs++;
+
+        if (numberOfRelevantURLs == 1) {
+            System.err.println("Parser: No HATEOAS Link found for the entry URL you entered. Are you sure the given entry point follows HATEOAS?");
+            System.exit(0);
+        } else {
+            System.out.println((numberOfAllURLs-numberOfRelevantURLs) + " external URLs removed.");
+            System.out.println(numberOfRelevantURLs + " HATEOAS Links found under " + entryResource);
+            if (numberOfRelevantURLs == allURLsInResponse.size()+1) {
+                System.out.println("Only HATEOAS Links were found. No links to external Websites.");
+            }
+        }
+
+        */
+
+        writeAttackSetToFile(createAttackSetJSON(pathsObj));
+
+    }
+
+    private HashMap<String, Boolean> getHATEOASLinks(String resource) {
+
+        Pattern patternFullURL = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\/([-a-zA-Z0-9@:%_\\+.~#?&//=]*)");
+        Pattern patternHostAndPortOnly = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}(:?\\d+)*\\/");
+        String responseBody = get(resource).asString();
+        Matcher matcherFullURL = patternFullURL.matcher(responseBody);
+        Matcher matcherHostAndPortOnly = patternHostAndPortOnly.matcher(resource);
+
+        HashMap<String, Boolean> relevantURLsOnly = new HashMap<>();
+
+        System.out.print("Getting all HATEOAS Links on " + resource + " ... ");
+
+        //Matching all URLs
+        HashMap<String, Boolean> allURLsInResponse = new HashMap<>();
+        while (matcherFullURL.find()) {
+            allURLsInResponse.put(matcherFullURL.group(), false);
+        }
+
+        //Return only the URLs that are on the same host as the given resource
+        matcherHostAndPortOnly.find();
+        String entryResourceDomainAndPortOnly = matcherHostAndPortOnly.group();
+
+        Iterator it = allURLsInResponse.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry url = (Map.Entry)it.next();
+            Matcher m = patternHostAndPortOnly.matcher(url.getKey().toString());
+            while (m.find()) {
+                if (m.group().equals(entryResourceDomainAndPortOnly)) {
+                    relevantURLsOnly.put(url.getKey().toString(), false);
                 }
             }
         }
 
-        if (count == 0) {
-            System.err.println("Parser: No HATEOAS Link found for the entry URL you entered. Are you sure the given entry point follows HATEOAS?");
-        } else {
-            System.out.println(count + " HATEOAS Links found under "+entryRessource);
-            if (count == allUniqueURLs.size()) System.out.println("Only HATEOAS Links were found. No links to external Websites.");
-        }
+        System.out.println(relevantURLsOnly.size() + " found.");
 
-        //TODO : Currently ending program here
-        //TODO : 1. create global list with endpoint links
-        //TODO : 2. Fill list by calling this function recursively (until all links have been followed once)
-        System.exit(0);
+        relevantURLsOnly.put(resource, true);
+        System.out.println(resource + " changed to isVisited : " + relevantURLsOnly.get(resource));
 
-        writeAttackSetToFile(createAttackSetJSON(pathsObj));
-
-        //call entryRessource and check if there is any link on the same domain/host (if not, abort "You sure you use HATEOAS?")
-        //find all links in response from entryRessource on the same domain/host
-        //check if found ressource is valid (by calling it)
-        //perform checks if the entry is already in the attackset or not (if not, add it)
-        //all methods have to be tested since there is not documentation (creating the attackset)
-        //done.
+        //Return the result
+        return relevantURLsOnly;
     }
 
+
     //Supporting Methods:
+
+    private ArrayList removeDuplicates(ArrayList<String> arrayList) {
+        ArrayList<String> result = new ArrayList<>();
+        HashSet<String> hashSet = new HashSet<>();
+        for (String s : arrayList) {
+            hashSet.add(s);
+        }
+        
+        for (String s : hashSet) {
+            result.add(s);
+        }
+        
+        System.out.println(arrayList.size() - result.size() + " duplicate elements removed.");
+        return result;
+    }
 
     @SuppressWarnings("unchecked")
     private JSONObject createAttackSetJSON(JSONObject pathsObject) {

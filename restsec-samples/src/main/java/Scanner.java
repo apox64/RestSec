@@ -117,18 +117,9 @@ public class Scanner {
 
         }
 
-        //Stopping the server again.
         callbackPage.stopTestPageServer();
 
     }
-
-    //create payload DONE
-    //inject payload DONE
-    //execute payload
-    // --> 1. open jetty server
-    // --> 2. refresh desired page (selenium? webtester?)
-    //TODO: Continue Here
-    //evaluate result (jetty server log)
 
     private void forgeRequest(String targetEndpoint, String payload, int expectedResponseCode) {
         RestAssured.basePath = "";
@@ -146,7 +137,6 @@ public class Scanner {
             System.err.println("Could not send request. Is proxy on?");
             System.exit(0);
         }
-
 
     }
 
