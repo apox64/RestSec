@@ -1,0 +1,8 @@
+{
+  "payload_SQLi_1" : {
+    "name":"' OR 1=1 --"
+  },
+  "payload_SQLi_2" : {
+    "name":" UNION SELECT * FROM USERS --"
+  }
+}

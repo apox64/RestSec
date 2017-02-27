@@ -6,51 +6,48 @@
 // Spring (working on it)
 // ...
 
-import org.apache.xerces.impl.xpath.regex.Match;
-import org.apache.xpath.operations.Bool;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import java.io.*;
-import java.lang.reflect.Array;
-import java.util.*;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static io.restassured.RestAssured.*;
+import static io.restassured.RestAssured.get;
 
 public class Parser implements Runnable {
 
-    private String baseURL = "http://127.0.0.1:80";
-
-    private String version;
-    private String host;
-    private String basePath;
-
-    private JSONObject pathsObj;
-
-    private String pathToSwaggerJSONFile = "";
+    private String entryPointOrDocumentationFile = "";
     private boolean useAllPossibleHTTPMethodsForAttack = false;
-    private String entryResourceHATEOAS = "";
+    private String docType = "";
 
-    public Parser(String pathToSwaggerJSONFile, boolean useAllPossibleHTTPMethodsForAttack) {
-        this.pathToSwaggerJSONFile = pathToSwaggerJSONFile;
+    public Parser(String entryPointOrDocumentationFile, String docType, boolean useAllPossibleHTTPMethodsForAttack) {
+        this.entryPointOrDocumentationFile = entryPointOrDocumentationFile;
         this.useAllPossibleHTTPMethodsForAttack = useAllPossibleHTTPMethodsForAttack;
-    }
-
-    public Parser(String entryResourceHATEOAS) throws IOException {
-        this.entryResourceHATEOAS = entryResourceHATEOAS;
-        //loadProperties();
+        this.docType = docType;
     }
 
     public void run() {
-        if (pathToSwaggerJSONFile.isEmpty()) {
-            //run HATEOAS Parsing
-            discoverLinksForHATEOAS(this.entryResourceHATEOAS);
-        } else {
-            //run Swagger Parsing
-            parseSwaggerJSON(this.pathToSwaggerJSONFile, this.useAllPossibleHTTPMethodsForAttack);
+        switch (docType) {
+            case "HATEOAS" :
+                //run HATEOAS Parsing
+                discoverLinksForHATEOAS(this.entryPointOrDocumentationFile);
+                break;
+            case "Swagger" :
+                //run Swagger Parsing
+                parseSwaggerJSON(this.entryPointOrDocumentationFile, this.useAllPossibleHTTPMethodsForAttack);
+                break;
+            default :
+                System.err.println("Could not recognize specified documentation type.");
+                System.exit(0);
+                break;
         }
     }
 
@@ -61,10 +58,10 @@ public class Parser implements Runnable {
         try {
             JSONObject jsonObj = (JSONObject) jsonParser.parse(new FileReader(getClass().getClassLoader().getResource(file).getFile()));
 
-            this.version = (String) jsonObj.get("swagger");
-            this.host = (String) jsonObj.get("host");
-            this.basePath = (String) jsonObj.get("basePath");
-            this.pathsObj = (JSONObject) jsonObj.get("paths");
+            String version = (String) jsonObj.get("swagger");
+            String host = (String) jsonObj.get("host");
+            String basePath = (String) jsonObj.get("basePath");
+            JSONObject pathsObj = (JSONObject) jsonObj.get("paths");
 
             System.out.println("Swagger Version: \t" + version);
             System.out.println("Host: \t\t\t\t" + host);
@@ -73,7 +70,7 @@ public class Parser implements Runnable {
             if (useAllHTTPMethods) {
                 writeAttackSetToFile(createCompleteHTTPMethodAttackSetJSON(pathsObj));
             } else {
-                writeAttackSetToFile(createAttackSetJSON(pathsObj));
+                writeAttackSetToFile(createAttackSetJSONSwagger(pathsObj));
             }
 
         } catch (Exception e) {
@@ -82,8 +79,8 @@ public class Parser implements Runnable {
     }
 
     private void discoverLinksForHATEOAS(String entryResource){
-        JSONObject pathsObj = new JSONObject();
-        System.out.println("Parser: Starting endpoint discovery for HATEOAS on "+entryResource+" ...");
+        JSONObject attackSet = new JSONObject();
+        //System.out.println("Parser: Starting endpoint discovery for HATEOAS on "+entryResource+" ...");
 
         //HashMap that gets filled for each call of getHATEOASLinks()
         //String endpoint, Boolean isVisited
@@ -91,61 +88,31 @@ public class Parser implements Runnable {
 
         //init
         relevantURLs = getHATEOASLinks(entryResource);
-        System.out.println("Parser: Adding entryResource ...");
         relevantURLs.put(entryResource, true);
-        //System.out.println("Parser: HATEOAS Links found for entryPoint: " + relevantURLs.size());
 
         //print
         Iterator it = relevantURLs.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry)it.next();
-            System.out.println("  - " + pair.getKey() + " : " + pair.getValue());
-            //it.remove(); // avoids a ConcurrentModificationException
+            //System.out.println("  - " + pair.getKey() + " : " + pair.getValue());
         }
-
-        //TODO: CONTINUE HERE
-        /*
-        while contains value == false
-            get one key that contains value == false
-            put that into getHATEOASLinks()
-            merge result and relevantURLs
-            repeat until all values are true
-         */
 
         while (relevantURLs.containsValue(false)) {
             Iterator iterator = relevantURLs.entrySet().iterator();
-            while (it.hasNext()) {
+            while (iterator.hasNext()) {
                 Map.Entry pair = (Map.Entry)iterator.next();
-                //draft: relevantURLs.putAll(getHATEOASLinks(pair.getKey()), );
-            }
-
-        }
-
-
-        System.out.println("Parser: Creating AttackSet for : " + relevantURLs.size() + " relevant URLs.");
-        // TODO: CURRENTLY ENDING PROGRAM HERE (TESTING)
-        System.exit(0);
-
-        /*
-
-        //Adding the entryResource itself
-        allRelevantURLs.add(entryResource);
-        numberOfRelevantURLs++;
-
-        if (numberOfRelevantURLs == 1) {
-            System.err.println("Parser: No HATEOAS Link found for the entry URL you entered. Are you sure the given entry point follows HATEOAS?");
-            System.exit(0);
-        } else {
-            System.out.println((numberOfAllURLs-numberOfRelevantURLs) + " external URLs removed.");
-            System.out.println(numberOfRelevantURLs + " HATEOAS Links found under " + entryResource);
-            if (numberOfRelevantURLs == allURLsInResponse.size()+1) {
-                System.out.println("Only HATEOAS Links were found. No links to external Websites.");
+                if (!Boolean.parseBoolean(pair.getValue().toString())) {
+                    HashMap<String, Boolean> temp = getHATEOASLinks(pair.getKey().toString());
+                    relevantURLs = mergeHashMaps(relevantURLs, temp);
+                }
             }
         }
 
-        */
+        for (Object key : relevantURLs.keySet()) {
+            attackSet.put(key, relevantURLs.get(key));
+        }
 
-        writeAttackSetToFile(createAttackSetJSON(pathsObj));
+            writeAttackSetToFile(createCompleteHTTPMethodAttackSetJSON(attackSet));
 
     }
 
@@ -159,7 +126,8 @@ public class Parser implements Runnable {
 
         HashMap<String, Boolean> relevantURLsOnly = new HashMap<>();
 
-        System.out.print("Getting all HATEOAS Links on " + resource + " ... ");
+        //TODO: Printing here
+        //System.out.print("Looking for all HATEOAS Links on " + resource + " ... ");
 
         //Matching all URLs
         HashMap<String, Boolean> allURLsInResponse = new HashMap<>();
@@ -182,35 +150,46 @@ public class Parser implements Runnable {
             }
         }
 
-        System.out.println(relevantURLsOnly.size() + " found.");
+        //TODO: Printing here
+        //System.out.println(relevantURLsOnly.size() + " found.");
 
         relevantURLsOnly.put(resource, true);
-        System.out.println(resource + " changed to isVisited : " + relevantURLsOnly.get(resource));
+        //System.out.println(resource + " changed to isVisited : " + relevantURLsOnly.get(resource));
 
         //Return the result
         return relevantURLsOnly;
     }
 
-
     //Supporting Methods:
 
-    private ArrayList removeDuplicates(ArrayList<String> arrayList) {
-        ArrayList<String> result = new ArrayList<>();
-        HashSet<String> hashSet = new HashSet<>();
-        for (String s : arrayList) {
-            hashSet.add(s);
+    private HashMap<String, Boolean> mergeHashMaps(HashMap<String, Boolean> map1, HashMap<String, Boolean> map2) {
+
+        //find bigger one
+        HashMap<String, Boolean> smallMap, bigMap;
+
+        if (map1.size() >= map2.size()){
+            bigMap = map1;
+            smallMap = map2;
+        } else {
+            bigMap = map2;
+            smallMap = map1;
         }
-        
-        for (String s : hashSet) {
-            result.add(s);
+
+        HashMap<String, Boolean> resultMap = new HashMap<>();
+
+        for (Object key : bigMap.keySet()) {
+            if (smallMap.containsKey(key.toString())) {
+                resultMap.put(key.toString(), smallMap.get(key) || bigMap.get(key));
+            } else {
+                resultMap.put(key.toString(), bigMap.get(key));
+            }
         }
-        
-        System.out.println(arrayList.size() - result.size() + " duplicate elements removed.");
-        return result;
+
+        return resultMap;
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject createAttackSetJSON(JSONObject pathsObject) {
+    private JSONObject createAttackSetJSONSwagger(JSONObject pathsObject) {
         Iterator<String> it = pathsObject.keySet().iterator();
         JSONObject attackSet = new JSONObject();
         int attackCounter = 0;
@@ -275,7 +254,7 @@ public class Parser implements Runnable {
     }
 
     private void writeAttackSetToFile(JSONObject attackSet){
-        System.out.println("Parser: attackSet: " + attackSet.toString());
+        printAttackSet(attackSet);
 
         try {
 
@@ -288,37 +267,16 @@ public class Parser implements Runnable {
             e.printStackTrace();
         }
 
-    }
-
-    /*
-    private void loadProperties() throws IOException {
-        System.out.println("Controller: Loading properties ... ");
-        Properties properties = new Properties();
-
-        try(InputStream stream = Scanner.class.getClassLoader().getResourceAsStream("config.properties")){
-            properties.load(stream);
-        }
-
-        // Load config
-        RestAssured.baseURI = properties.getProperty("base-uri");
-        System.out.println("baseURI : "+RestAssured.baseURI);
-        RestAssured.port = Integer.parseInt(properties.getProperty("port"));
-        System.out.println("port : "+RestAssured.port);
-        RestAssured.basePath = properties.getProperty("base-path");
-        System.out.println("basePath : "+RestAssured.basePath);
-
-        this.baseURL = properties.getProperty("base-uri") + ":" + properties.getProperty("port");// + properties.getProperty("base-path");
-
-        if (!properties.getProperty("proxy_ip").equals("")) {
-            RestAssured.proxy(properties.getProperty("proxy_ip"), Integer.parseInt(properties.getProperty("proxy_port")));
-            System.out.println("proxy : "+RestAssured.proxy);
-        } else {
-            System.out.println("proxy : no proxy set in config");
-        }
-
-        System.out.println("Done.");
+        System.out.println("Parser: AttackSet written to File.");
 
     }
-    */
+
+    private void printAttackSet(JSONObject attackSet){
+        System.out.println("--- Attack Set ---");
+        for (Object key : attackSet.keySet()) {
+            System.out.println(key + " : " + attackSet.get(key));
+        }
+        System.out.println("------------------");
+    }
 
 }

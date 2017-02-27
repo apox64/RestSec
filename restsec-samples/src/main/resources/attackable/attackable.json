@@ -1,1 +1,1 @@
-{}
+{"http:\/\/localhost:10001\/album\/1":["POST","PATCH","PUT","DELETE"],"http:\/\/localhost:10001\/album\/2":["POST","PATCH","PUT","DELETE"],"http:\/\/localhost:10001\/artist\/cfrost":["POST","PATCH","PUT","DELETE"],"http:\/\/localhost:10001\/album\/3":["POST","PATCH","PUT","DELETE"],"http:\/\/localhost:10001\/artist\/opeth":["POST","PATCH","PUT","DELETE"],"http:\/\/localhost:10001\/albums\/":["POST","PATCH","PUT","DELETE"]}
