@@ -6,6 +6,8 @@
 // Spring (working on it)
 // ...
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -27,6 +29,9 @@ public class Parser implements Runnable {
     private String entryPointOrDocumentationFile = "";
     private boolean useAllPossibleHTTPMethodsForAttack = false;
     private String docType = "";
+
+    //pretty printing
+    ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     public Parser(String entryPointOrDocumentationFile, String docType, boolean useAllPossibleHTTPMethodsForAttack) {
         this.entryPointOrDocumentationFile = entryPointOrDocumentationFile;
@@ -259,7 +264,10 @@ public class Parser implements Runnable {
         try {
 
             FileWriter file = new FileWriter("restsec-samples/src/main/resources/attackable/attackable.json");
-            file.write(attackSet.toString());
+
+            String output = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(attackSet);
+
+            file.write(output);
             file.flush();
             file.close();
 

@@ -4,17 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import java.util.logging.Logger;
 
 public class Controller {
-
 
     private static String entryPointHATEOAS = "";
     private static String swaggerLocation = "";
     private static boolean allHTTPMethods = false;
     private static String documentationType = "";
     private static String scanForVulnerabilityTypes = "all";
-
+    private static String xssPayloadsFile = "";
+    private static String sqliPayloadsFile = "";
 
     public Controller() {
         try {
@@ -58,11 +57,11 @@ public class Controller {
         //Starting a scanner
         switch (scanForVulnerabilityTypes.toLowerCase()) {
             case "xss":
-                Scanner scannerXSS = new Scanner("attackable/attackable.json", "payloads/xss.json");
+                Scanner scannerXSS = new Scanner("attackable/attackable.json", xssPayloadsFile);
                 scannerXSS.scanXSS();
                 break;
             case "sqli":
-                Scanner scannerSQLi = new Scanner("attackable/attackable.json", "payloads/sqli.json");
+                Scanner scannerSQLi = new Scanner("attackable/attackable.json", sqliPayloadsFile);
                 scannerSQLi.scanSQLi();
                 break;
             case "all":
@@ -107,9 +106,9 @@ public class Controller {
 
         if (!properties.getProperty("proxy_ip").equals("")) {
             RestAssured.proxy(properties.getProperty("proxy_ip"), Integer.parseInt(properties.getProperty("proxy_port")));
-            //System.out.println("proxy : "+RestAssured.proxy);
+            System.out.println("proxy : "+RestAssured.proxy);
         } else {
-            //System.out.println("proxy : no proxy set in config.properties");
+            System.out.println("proxy : no proxy set in config.properties");
         }
 
         // Load config for scan modes and documentation type
@@ -118,6 +117,8 @@ public class Controller {
         swaggerLocation = properties.getProperty("swaggerLocation");
         allHTTPMethods = Boolean.parseBoolean(properties.getProperty("allHTTPMethods"));
         scanForVulnerabilityTypes = properties.getProperty("scanForVulnerabilityTypes");
+        xssPayloadsFile = properties.getProperty("xssPayloadsFile");
+        sqliPayloadsFile = properties.getProperty("sqliPayloadsFile");
 
         System.out.println("Done.");
 

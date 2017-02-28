@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public class CallbackPage {
@@ -97,16 +98,19 @@ public class CallbackPage {
         System.out.print("CallbackPage: Creating ChromeDriver ... ");
         setWebDriver();
         System.out.print("CallbackPage: Getting URL: " + url + " ... ");
+        chromeDriver.manage().timeouts().pageLoadTimeout(5, TimeUnit.SECONDS);
         chromeDriver.get(url);
         System.out.println("Done.");
 
+        /*
         try {
-            System.out.print("CallbackPage: Sleeping for 2 seconds ... ");
-            Thread.sleep(2000);
+            System.out.print("CallbackPage: Sleeping for 0.25 seconds ... ");
+            Thread.sleep(250);
             System.out.println("Done.");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        */
 
         System.out.print("CallbackPage: Refreshing ... ");
 
@@ -123,13 +127,15 @@ public class CallbackPage {
 
         System.out.print("CallbackPage: Refreshing the page ... ");
         chromeDriver.navigate().refresh();
-        System.out.println("Done.");
 
         try {
-            Thread.sleep(2000);
+            Thread.sleep(250);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        System.out.println("Done.");
+
 
         chromeDriver.close();
         System.out.println("Done.");
