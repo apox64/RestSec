@@ -1,7 +1,6 @@
 
 import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.util.log.StdErrLog;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -10,7 +9,9 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
-import java.util.logging.Level;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 public class CallbackPage {
@@ -35,7 +36,7 @@ public class CallbackPage {
         System.setProperty("org.eclipse.jetty.util.log.class", "org.eclipse.jetty.util.log.JavaUtilLog");
         System.setProperty("org.eclipse.jetty.util.log.class.LEVEL", "WARN");
 
-        if (deleteOldLogs == true) {
+        if (deleteOldLogs) {
             File directory = new File("restsec-samples/src/main/resources/jetty-logs/");
 
             for(File f : directory.listFiles()) {
@@ -79,7 +80,14 @@ public class CallbackPage {
         System.setProperty("webdriver.chrome.driver", "C:\\Users\\DMD\\Development\\RestSec\\restsec-samples\\chromedriver-win32.exe");
         DesiredCapabilities capabilities = DesiredCapabilities.chrome();
         Proxy proxy = new Proxy();
-        proxy.setHttpProxy("127.0.0.1:8080");
+        Properties properties = new Properties();
+        InputStream stream = Scanner.class.getClassLoader().getResourceAsStream("config.properties");
+        try {
+            properties.load(stream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        proxy.setHttpProxy(properties.getProperty("proxy_ip")+":"+properties.getProperty("proxy_port"));
         capabilities.setCapability("proxy", proxy);
         this.chromeDriver = new ChromeDriver(capabilities);
     }
@@ -91,7 +99,6 @@ public class CallbackPage {
         System.out.print("CallbackPage: Getting URL: " + url + " ... ");
         chromeDriver.get(url);
         System.out.println("Done.");
-
 
         try {
             System.out.print("CallbackPage: Sleeping for 2 seconds ... ");

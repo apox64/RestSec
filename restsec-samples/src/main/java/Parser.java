@@ -271,7 +271,7 @@ public class Parser implements Runnable {
 
     }
 
-    private void printAttackSet(JSONObject attackSet){
+    public void printAttackSet(JSONObject attackSet){
         System.out.println("--- Attack Set ---");
         for (Object key : attackSet.keySet()) {
             System.out.println(key + " : " + attackSet.get(key));
