@@ -1,7 +1,5 @@
 package juiceshop;
 
-import juiceshop.JuiceShopBasic;
-import juiceshop.JuiceShopXSS;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
@@ -9,6 +7,7 @@ import org.junit.runners.Suite;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,7 +19,7 @@ import java.util.regex.Pattern;
         JuiceShopXSS.class
 })
 
-public class TestSuite {
+public class JuiceShopTestSuite {
 
     private static String serverIP = "";
     private static int serverPort = 0;
@@ -34,7 +33,7 @@ public class TestSuite {
 
         loadProperties();
 
-        if (proxyIp != "" && proxyPort != 0) {
+        if (!Objects.equals(proxyIp, "") && proxyPort != 0) {
             if (isOnline(proxyIp,proxyPort)){
                 System.out.println("Proxy online.");
             } else {
@@ -63,6 +62,7 @@ public class TestSuite {
 
         Pattern r = Pattern.compile("(?:[0-9]{1,3}\\.){3}[0-9]{1,3}");
         Matcher m = r.matcher(properties.getProperty("base-uri"));
+        //noinspection ResultOfMethodCallIgnored
         m.find();
         serverIP = m.group(0);
         serverPort = Integer.parseInt(properties.getProperty("port"));

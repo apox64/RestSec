@@ -1,3 +1,4 @@
+package restsec;
 
 import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
@@ -24,7 +25,7 @@ public class CallbackPage {
     private static Server server = new Server(port);
     private ChromeDriver chromeDriver;
 
-    Logger logger = Logger.getLogger(CallbackPage.class.getName());
+    private Logger logger = Logger.getLogger(CallbackPage.class.getName());
 
     public CallbackPage() {
         configureJettyLogging(true);
@@ -40,7 +41,9 @@ public class CallbackPage {
         if (deleteOldLogs) {
             File directory = new File("restsec-samples/src/main/resources/jetty-logs/");
 
+            //noinspection ConstantConditions
             for(File f : directory.listFiles()) {
+                //noinspection ResultOfMethodCallIgnored
                 f.delete();
             }
         }
@@ -60,7 +63,7 @@ public class CallbackPage {
     public void startTestPageServer() {
         try {
             server.start();
-            System.out.println("CallbackPage: Jetty Server started. Listening on "+port+" ... ");
+            System.out.println("restsec.CallbackPage: Jetty Server started. Listening on "+port+" ... ");
             logger.info("Jetty Server started on port "+port);
         } catch (Exception e) {
             e.printStackTrace();
@@ -70,7 +73,7 @@ public class CallbackPage {
     public void stopTestPageServer() {
         try {
             server.stop();
-            System.out.println("CallbackPage: Jetty Server stopped.");
+            System.out.println("restsec.CallbackPage: Jetty Server stopped.");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -94,17 +97,19 @@ public class CallbackPage {
     }
 
     //this lets you actually execute the stored xss payload by reloading the page (with selenium webdriver)
-    public void reloadResource(String url){
-        System.out.print("CallbackPage: Creating ChromeDriver ... ");
+    public boolean hasAlertOnReload(String url){
+        boolean hasAlert = false;
+
+        System.out.print("restsec.CallbackPage: Creating ChromeDriver ... ");
         setWebDriver();
-        System.out.print("CallbackPage: Getting URL: " + url + " ... ");
+        System.out.print("restsec.CallbackPage: Getting URL: " + url + " ... ");
         chromeDriver.manage().timeouts().pageLoadTimeout(5, TimeUnit.SECONDS);
         chromeDriver.get(url);
         System.out.println("Done.");
 
         /*
         try {
-            System.out.print("CallbackPage: Sleeping for 0.25 seconds ... ");
+            System.out.print("restsec.CallbackPage: Sleeping for 0.25 seconds ... ");
             Thread.sleep(250);
             System.out.println("Done.");
         } catch (InterruptedException e) {
@@ -112,20 +117,23 @@ public class CallbackPage {
         }
         */
 
-        System.out.print("CallbackPage: Refreshing ... ");
+        //System.out.print("restsec.CallbackPage: Refreshing ... ");
 
         //click alert automatically, if there is one
         try {
             WebDriverWait wait = new WebDriverWait(chromeDriver, 1);
-            System.out.print("CallbackPage: Waiting for alert ... ");
+            System.out.print("restsec.CallbackPage: Waiting for alert ... ");
             wait.until(ExpectedConditions.alertIsPresent());
             System.out.println("Alert found (payload worked!)");
+            hasAlert = true;
             chromeDriver.switchTo().alert().accept();
         } catch (TimeoutException te){
             System.out.println("No alert found.");
         }
 
-        System.out.print("CallbackPage: Refreshing the page ... ");
+        //TODO: Refresh might actually not even be necessary (reopen on next test does the same)
+        /*
+        System.out.print("restsec.CallbackPage: Refreshing the page ... ");
         chromeDriver.navigate().refresh();
 
         try {
@@ -135,10 +143,13 @@ public class CallbackPage {
         }
 
         System.out.println("Done.");
-
+        */
 
         chromeDriver.close();
         System.out.println("Done.");
+
+        return hasAlert;
+
     }
 
 }

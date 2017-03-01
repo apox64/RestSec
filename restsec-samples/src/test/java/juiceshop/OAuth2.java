@@ -3,11 +3,6 @@ package juiceshop;
 import io.restassured.authentication.AuthenticationScheme;
 import io.restassured.authentication.PreemptiveOAuth2HeaderScheme;
 import io.restassured.builder.ResponseBuilder;
-import io.restassured.filter.Filter;
-import io.restassured.filter.FilterContext;
-import io.restassured.response.Response;
-import io.restassured.specification.FilterableRequestSpecification;
-import io.restassured.specification.FilterableResponseSpecification;
 import org.junit.Test;
 
 import static io.restassured.RestAssured.given;
@@ -41,11 +36,9 @@ public class OAuth2 {
 
         given().
                 auth().preemptive().oauth2(accessToken).
-                filter(new Filter() {
-                    public Response filter(FilterableRequestSpecification requestSpec, FilterableResponseSpecification responseSpec, FilterContext ctx) {
-                        assertThat(requestSpec.getHeaders().getValue("Authorization"), equalTo("Bearer "+accessToken));
-                        return new ResponseBuilder().setBody("ok").setStatusCode(200).build();
-                    }
+                filter((requestSpec, responseSpec, ctx) -> {
+                    assertThat(requestSpec.getHeaders().getValue("Authorization"), equalTo("Bearer "+accessToken));
+                    return new ResponseBuilder().setBody("ok").setStatusCode(200).build();
                 }).
                 when().
                 get("/somewhere").
@@ -59,13 +52,11 @@ public class OAuth2 {
 
         given().
                 auth().oauth2(accessToken).
-                filter(new Filter() {
-                    public Response filter(FilterableRequestSpecification requestSpec, FilterableResponseSpecification responseSpec, FilterContext ctx) {
-                        AuthenticationScheme scheme = requestSpec.getAuthenticationScheme();
-                        assertThat(scheme, instanceOf(PreemptiveOAuth2HeaderScheme.class));
-                        assertThat(((PreemptiveOAuth2HeaderScheme) scheme).getAccessToken(), equalTo(accessToken));
-                        return new ResponseBuilder().setBody("ok").setStatusCode(200).build();
-                    }
+                filter((requestSpec, responseSpec, ctx) -> {
+                    AuthenticationScheme scheme = requestSpec.getAuthenticationScheme();
+                    assertThat(scheme, instanceOf(PreemptiveOAuth2HeaderScheme.class));
+                    assertThat(((PreemptiveOAuth2HeaderScheme) scheme).getAccessToken(), equalTo(accessToken));
+                    return new ResponseBuilder().setBody("ok").setStatusCode(200).build();
                 }).
                 when().
                 get("/somewhere").

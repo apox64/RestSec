@@ -25,7 +25,6 @@ public class JuiceShopXSS {
 
     private static Server server;
     private static String payload;
-    private static int timeToReload = 15000;
 
     @BeforeClass
     public static void startTestPageServer() throws Exception {
@@ -104,7 +103,7 @@ public class JuiceShopXSS {
     private static void setPayload(String file, String payloadName) {
             JSONParser jsonParser = new JSONParser();
         try {
-            JSONObject jsonObj = (JSONObject) jsonParser.parse(new FileReader(JuiceShopXSS.class.getClassLoader().getResource("payloads/"+file).getFile()));
+            @SuppressWarnings("ConstantConditions") JSONObject jsonObj = (JSONObject) jsonParser.parse(new FileReader(JuiceShopXSS.class.getClassLoader().getResource("payloads/"+file).getFile()));
             payload = jsonObj.get(payloadName).toString();
             System.out.println(">>> Payload set: \""+payloadName+"\"");
         }
@@ -115,7 +114,7 @@ public class JuiceShopXSS {
 
     private void injectPayload(String restPath) {
 
-        String payload = this.payload;
+        String payload = JuiceShopXSS.payload;
 
         RestAssured.basePath = "";
 
@@ -134,7 +133,8 @@ public class JuiceShopXSS {
 
     //TODO: Only a manual page reload runs the stored payload. Is there another possibility to refresh the page?
     private void reloadPage() {
-        System.out.println(">>> Waiting "+timeToReload/1000+" seconds ...");
+        int timeToReload = 15000;
+        System.out.println(">>> Waiting "+ timeToReload /1000+" seconds ...");
 
         try {
         Thread.sleep(timeToReload);
@@ -155,6 +155,7 @@ public class JuiceShopXSS {
                 System.out.println(">>> Success! Log contains token.");
                 Pattern p = Pattern.compile("token=\\S*");
                 Matcher m = p.matcher(line);
+                //noinspection ResultOfMethodCallIgnored
                 m.find();
                 System.out.println(">>> Token found: "+m.group(0));
 

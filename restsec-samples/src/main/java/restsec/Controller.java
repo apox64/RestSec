@@ -1,44 +1,44 @@
-import io.restassured.RestAssured;
+package restsec;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Properties;
 
 public class Controller {
 
     private static String entryPointHATEOAS = "";
     private static String swaggerLocation = "";
-    private static boolean allHTTPMethods = false;
     private static String documentationType = "";
     private static String scanForVulnerabilityTypes = "all";
     private static String xssPayloadsFile = "";
     private static String sqliPayloadsFile = "";
+    private static boolean allHTTPMethods = false;
+    private static boolean deleteOldResultsFile = true;
 
     public Controller() {
-        try {
             loadProperties();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
     }
-
-    private String baseURL = "http://127.0.0.1:80";
 
     public static void main (String[] args) throws Exception {
 
         new Controller();
 
-        //Starting a Parser with desired arguments (Thread)
+        if (deleteOldResultsFile) {
+            Files.deleteIfExists(new File("restsec-samples/src/main/resources/results/results.json").toPath());
+            System.out.println("restsec.Controller: results.json deleted.");
+        }
+
         Thread parser = null;
 
         switch (documentationType.toLowerCase()) {
             case "swagger" :
-                System.out.println("Controller: Using Swagger Documentation : "+swaggerLocation+" (All HTTP Methods: "+allHTTPMethods+")");
+                System.out.println("restsec.Controller: Using Swagger Documentation : "+swaggerLocation+" (All HTTP Methods: "+allHTTPMethods+")");
                 parser = new Thread(new Parser(swaggerLocation, "Swagger", allHTTPMethods));
                 break;
             case "hateoas" :
-                System.out.println("Controller: Following HATEOAS links on : "+entryPointHATEOAS);
+                System.out.println("restsec.Controller: Following HATEOAS links on : "+entryPointHATEOAS);
                 parser = new Thread(new Parser(entryPointHATEOAS, "HATEOAS", allHTTPMethods));
                 break;
             default:
@@ -47,14 +47,13 @@ public class Controller {
                 break;
         }
 
-        System.err.println(">>> Controller: Starting parser thread ... ");
+        System.err.println(">>> restsec.Controller: Starting parser thread ... ");
         parser.start();
-        // Waiting for Parser to finish
+        // Waiting for restsec.Parser to finish
         parser.join();
-        System.err.println(">>> Controller: Parser thread finished.");
+        System.err.println(">>> restsec.Controller: restsec.Parser thread finished.");
 
-
-        //Starting a scanner
+        //Starting a restsec.Scanner
         switch (scanForVulnerabilityTypes.toLowerCase()) {
             case "xss":
                 Scanner scannerXSS = new Scanner("attackable/attackable.json", xssPayloadsFile);
@@ -67,6 +66,7 @@ public class Controller {
             case "all":
                 //Loop over all payload files in "payloads" folder.
                 final File folder = new File("restsec-samples/src/main/resources/payloads/");
+                //noinspection ConstantConditions
                 for (final File fileEntry : folder.listFiles()) {
                     Scanner scanner = new Scanner("attackable/attackable.json", "payloads/"+fileEntry.getName());
                     scanner.scanXSS();
@@ -74,25 +74,27 @@ public class Controller {
                 }
                 break;
             default:
-                System.err.println("Controller: Did not recognize scan type in config.properties : XSS / SQLi / all");
+                System.err.println("restsec.Controller: Did not recognize scan type in config.properties : XSS / SQLi / all");
                 System.exit(0);
         }
 
-        // Starting an Evaluator
-        Evaluator evaluator = new Evaluator();
-        evaluator.evaluateLogfile();
+        // Starting an restsec.Evaluator (static)
+        Evaluator.evaluateLogfile();
 
         System.err.println(">>> RestSec terminated.");
     }
 
-    private void loadProperties() throws IOException {
-        System.out.print("Controller: Loading properties ... ");
+    private void loadProperties() {
+        System.out.print("restsec.Controller: Loading properties ... ");
         Properties properties = new Properties();
 
         try(InputStream stream = Scanner.class.getClassLoader().getResourceAsStream("config.properties")){
             properties.load(stream);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
         }
 
+        /*
         // Load config for Rest-assured
         //System.out.print("Config for Rest-Assured: ");
         RestAssured.baseURI = properties.getProperty("base-uri");
@@ -102,7 +104,7 @@ public class Controller {
         RestAssured.basePath = properties.getProperty("base-path");
         //System.out.println(" basePath : "+RestAssured.basePath);
 
-        this.baseURL = properties.getProperty("base-uri") + ":" + properties.getProperty("port");// + properties.getProperty("base-path");
+        String baseURL = properties.getProperty("base-uri") + ":" + properties.getProperty("port");
 
         if (!properties.getProperty("proxy_ip").equals("")) {
             RestAssured.proxy(properties.getProperty("proxy_ip"), Integer.parseInt(properties.getProperty("proxy_port")));
@@ -110,6 +112,7 @@ public class Controller {
         } else {
             System.out.println("proxy : no proxy set in config.properties");
         }
+        */
 
         // Load config for scan modes and documentation type
         documentationType = properties.getProperty("documentationType");
@@ -119,8 +122,7 @@ public class Controller {
         scanForVulnerabilityTypes = properties.getProperty("scanForVulnerabilityTypes");
         xssPayloadsFile = properties.getProperty("xssPayloadsFile");
         sqliPayloadsFile = properties.getProperty("sqliPayloadsFile");
-
-        System.out.println("Done.");
+        deleteOldResultsFile = Boolean.parseBoolean(properties.getProperty("deleteOldResultsFile"));
 
     }
 

@@ -1,8 +1,7 @@
-// Scanner needs input:
-// - Attack Set (from Parser, etc.)
+package restsec;// restsec.Scanner needs input:
+// - Attack Set (from restsec.Parser, etc.)
 // - Payloads (from payloads/)
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -11,10 +10,8 @@ import org.json.simple.parser.JSONParser;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
 import java.util.Properties;
 
-import static io.restassured.RestAssured.defaultParser;
 import static io.restassured.RestAssured.given;
 
 public class Scanner {
@@ -28,11 +25,13 @@ public class Scanner {
     public Scanner(String attackSetFile, String payloadsFile) {
         JSONParser parser = new JSONParser();
         try{
+            //noinspection ConstantConditions
             attackSet = (JSONObject) parser.parse(new FileReader(getClass().getClassLoader().getResource(attackSetFile).getFile()));
-            System.out.println("Scanner: "+attackSet.size()+" possible attacks loaded from file: "+attackSetFile);
+            System.out.println("restsec.Scanner: "+attackSet.size()+" possible attacks loaded from file: "+attackSetFile);
+            //noinspection ConstantConditions
             payloads = (JSONObject) parser.parse(new FileReader(getClass().getClassLoader().getResource(payloadsFile).getFile()));
-            System.out.println("Scanner: "+payloads.size()+" payloads loaded from file: "+payloadsFile);
-            System.err.println("Scanner: Loading properties (baseURI, port, basePath, proxy ip, proxy port) ... ");
+            System.out.println("restsec.Scanner: "+payloads.size()+" payloads loaded from file: "+payloadsFile);
+            System.err.println("restsec.Scanner: Loading properties (baseURI, port, basePath, proxy ip, proxy port) ... ");
             loadProperties();
         } catch (Exception e) {
             e.printStackTrace();
@@ -64,9 +63,8 @@ public class Scanner {
 
     }
 
-
     public void scanXSS() {
-        System.out.println("Scanner: Trying XSS payloads ...");
+        System.out.println("restsec.Scanner: Trying XSS payloads ...");
 
         int numberOfSentPackets = 0;
         int acceptedPackets = 0;
@@ -75,20 +73,17 @@ public class Scanner {
         //Where the executed payloads will call back to.
         callbackPage.startTestPageServer();
 
-        Iterator resourceIterator = attackSet.keySet().iterator();
+        for (Object o : attackSet.keySet()) {
 
-        while (resourceIterator.hasNext()) {
-
-            String resource = resourceIterator.next().toString();
+            String resource = o.toString();
 
             JSONArray httpVerbsArray = (JSONArray) attackSet.get(resource);
 
-            for (int i = 0; i < httpVerbsArray.size(); i++) {
-                String httpVerb = (String) httpVerbsArray.get(i);
+            for (Object aHttpVerbsArray : httpVerbsArray) {
+                String httpVerb = (String) aHttpVerbsArray;
 
-                Iterator payloadsIterator = payloads.keySet().iterator();
-                while (payloadsIterator.hasNext()) {
-                    String payloadName = (String) payloadsIterator.next();
+                for (Object o1 : payloads.keySet()) {
+                    String payloadName = (String) o1;
                     JSONObject payloadObject = (JSONObject) payloads.get(payloadName);
 
                     // unescaping forward slashes for payload: replacing \/ with /
@@ -96,9 +91,9 @@ public class Scanner {
 
                     // Filtering endpoints with curly brackets (numbers) - Not supported yet.
                     if (resource.contains("{")) {
-                        System.out.println("Scanner: Skipping " + resource + " (Curly bracket not yet implemented!");
+                        System.out.println("restsec.Scanner: Skipping " + resource + " (Curly bracket not yet implemented!");
                     } else {
-                        System.out.print("Scanner: Trying " + httpVerb + " on " + resource + " (Payload: \"" + payloadName + "\") ... ");
+                        System.out.print("restsec.Scanner: Trying " + httpVerb + " on " + resource + " (Payload: \"" + payloadName + "\") ... ");
                         numberOfSentPackets++;
                         try {
                             forgeRequest(resource, httpVerb, payload, 200);
@@ -106,7 +101,9 @@ public class Scanner {
                             System.out.println("Accepted.");
                             acceptedPackets++;
                             //callbackPage.reloadResource(baseURL+resource);
-                            callbackPage.reloadResource(baseURL);
+                            if (callbackPage.hasAlertOnReload(baseURL)) {
+                                Evaluator.writeVulnerabilityToFile("XSS (alert)", resource, payload, "-");
+                            }
 
                         } catch (AssertionError ae) {
                             //System.err.println(" Rejected. (Server Status Code does not match expected Code)");
@@ -122,7 +119,7 @@ public class Scanner {
 
         }
 
-        System.out.println("----------------------------\nScanner: Stats for XSS Scan:\n----------------------------\n"+acceptedPackets+" packets accepted. "+
+        System.out.println("----------------------------\nrestsec.Scanner: Stats for XSS Scan:\n----------------------------\n"+acceptedPackets+" packets accepted. "+
                 rejectedPackets+" packets rejected. ("+(acceptedPackets*100/numberOfSentPackets)+"% accepted).\n----------------------------");
 
         callbackPage.stopTestPageServer();
@@ -130,12 +127,13 @@ public class Scanner {
     }
 
     public void scanSQLi(){
-        System.out.println("Scanner: Trying SQLi ...");
+        System.out.println("restsec.Scanner: Trying SQLi ...");
         int numberOfSentPackets = 0;
         int acceptedPackets = 0;
         int rejectedPackets = 0;
 
-        System.out.println("----------------------------\nScanner: Stats for SQLi Scan:");
+        System.out.println("----------------------------\nrestsec.Scanner: Stats for SQLi Scan:");
+        //noinspection ConstantConditions
         if (numberOfSentPackets == 0) {
             System.out.println("No packets sent.");
         } else {

@@ -1,8 +1,8 @@
-import org.json.simple.JSONObject;
+package restsec;
+
 import org.junit.jupiter.api.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class ParserTest {
     @BeforeEach
@@ -16,9 +16,9 @@ class ParserTest {
     }
 
     @Test
-    @DisplayName("Testing Parser for correct output")
+    @DisplayName("Testing restsec.Parser for correct output")
     void testParser() {
-        //Parser p = new Parser("http://localhost:10001/albums/", "HATEOAS", true);
+        //restsec.Parser p = new restsec.Parser("http://localhost:10001/albums/", "HATEOAS", true);
         //JSONObject jsonObject = new JSONObject();
         Assertions.assertEquals(22, 22);
     }
@@ -51,7 +51,7 @@ class ParserTest {
         result.put("http://localhost:10001/artist/cfrost", true);
         result.put("http://localhost:10001/album/purchase/3", false);
 
-        Parser p = new Parser(null,null,false);
+        restsec.Parser p = new restsec.Parser(null,null,false);
         assert (p.mergeHashMaps(map1, map2).keySet().equals(result.keySet()));
         */
 
