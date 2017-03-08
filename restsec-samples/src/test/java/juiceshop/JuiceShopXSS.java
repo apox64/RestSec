@@ -8,10 +8,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.*;
 
@@ -39,6 +36,7 @@ public class JuiceShopXSS {
         server.stop();
     }
 
+    @Ignore
     @Test
     public void xssTier3() {
         try {
@@ -51,6 +49,7 @@ public class JuiceShopXSS {
         }
     }
 
+    @Ignore
     @Test
     public void xssTier4(){
         try {

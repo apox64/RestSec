@@ -14,27 +14,58 @@ import java.util.Properties;
 
 import static io.restassured.RestAssured.given;
 
-public class Scanner {
+class Scanner implements Runnable {
 
     private JSONObject attackSet = new JSONObject();
     private JSONObject payloads = new JSONObject();
-    private CallbackPage callbackPage = new CallbackPage();
+    private final CallbackPage callbackPage = new CallbackPage();
+    private String attackSetFile = "";
+    private String payloadsFile = "";
+    private String scanFor = "";
 
     private String baseURL = "http://127.0.0.1:80";
 
-    public Scanner(String attackSetFile, String payloadsFile) {
+    Scanner(String attackSetFile, String payloadsFile, String scanFor) {
+        this.attackSetFile = attackSetFile;
+        this.payloadsFile = payloadsFile;
+        this.scanFor = scanFor;
+    }
+
+    public void run() {
         JSONParser parser = new JSONParser();
         try{
             //noinspection ConstantConditions
-            attackSet = (JSONObject) parser.parse(new FileReader(getClass().getClassLoader().getResource(attackSetFile).getFile()));
-            System.out.println("restsec.Scanner: "+attackSet.size()+" possible attacks loaded from file: "+attackSetFile);
+            attackSet = (JSONObject) parser.parse(new FileReader(attackSetFile));
+
+            int attackSetSize = 0;
+            for (Object key : attackSet.keySet()) {
+                JSONArray httpMethods = (JSONArray) attackSet.get(key);
+                attackSetSize += httpMethods.size();
+            }
+
+            System.out.println("restsec.Scanner: "+attackSet.size()+" attackable endpoints loaded from file: "+attackSetFile);
             //noinspection ConstantConditions
-            payloads = (JSONObject) parser.parse(new FileReader(getClass().getClassLoader().getResource(payloadsFile).getFile()));
+            payloads = (JSONObject) parser.parse(new FileReader(payloadsFile));
             System.out.println("restsec.Scanner: "+payloads.size()+" payloads loaded from file: "+payloadsFile);
-            System.err.println("restsec.Scanner: Loading properties (baseURI, port, basePath, proxy ip, proxy port) ... ");
+            System.out.println("restsec.Scanner: "+attackSetSize*payloads.size()+" total attacks");
+            System.out.println("restsec.Scanner: Loading properties (baseURI, port, basePath, proxy ip, proxy port) ... ");
             loadProperties();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        switch (scanFor.toLowerCase()) {
+            case "xss":
+                scanXSS();
+                break;
+            case "sqli":
+                scanSQLi();
+                break;
+            case "all":
+                scanXSS();
+                scanSQLi();
+            default:
+                System.err.println("restsec.Scanner: Unknown scan type.");
+                break;
         }
     }
 
@@ -63,7 +94,7 @@ public class Scanner {
 
     }
 
-    public void scanXSS() {
+    private void scanXSS() {
         System.out.println("restsec.Scanner: Trying XSS payloads ...");
 
         int numberOfSentPackets = 0;
@@ -93,7 +124,7 @@ public class Scanner {
                     if (resource.contains("{")) {
                         System.out.println("restsec.Scanner: Skipping " + resource + " (Curly bracket not yet implemented!");
                     } else {
-                        System.out.print("restsec.Scanner: Trying " + httpVerb + " on " + resource + " (Payload: \"" + payloadName + "\") ... ");
+                        System.out.println("restsec.Scanner: Trying " + httpVerb + " on " + resource + " (Payload: \"" + payloadName + "\") ... ");
                         numberOfSentPackets++;
                         try {
                             forgeRequest(resource, httpVerb, payload, 200);
@@ -119,14 +150,16 @@ public class Scanner {
 
         }
 
-        System.out.println("----------------------------\nrestsec.Scanner: Stats for XSS Scan:\n----------------------------\n"+acceptedPackets+" packets accepted. "+
-                rejectedPackets+" packets rejected. ("+(acceptedPackets*100/numberOfSentPackets)+"% accepted).\n----------------------------");
-
+        System.out.println("----------------------------\nrestsec.Scanner: Stats for XSS Scan:\n----------------------------\n" + numberOfSentPackets + " packets sent. ");
+        if (numberOfSentPackets != 0) {
+            System.out.println(acceptedPackets + " packets accepted. (" + (acceptedPackets * 100 / numberOfSentPackets) + "%).\n----------------------------");
+        }
+        System.out.println("----------------------------");
         callbackPage.stopTestPageServer();
 
     }
 
-    public void scanSQLi(){
+    private void scanSQLi(){
         System.out.println("restsec.Scanner: Trying SQLi ...");
         int numberOfSentPackets = 0;
         int acceptedPackets = 0;

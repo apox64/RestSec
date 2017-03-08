@@ -3,6 +3,7 @@ package restsec;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
+import org.apache.xpath.operations.Bool;
 
 import javax.json.Json;
 import javax.json.JsonBuilderFactory;
@@ -34,7 +35,7 @@ public class Evaluator {
 
         BufferedReader bufferedReader = null;
         try {
-            bufferedReader = new BufferedReader(new FileReader("restsec-samples/src/main/resources/jetty-logs/jetty-"+ s +".request.log"));
+            bufferedReader = new BufferedReader(new FileReader("src/main/resources/jetty-logs/jetty-"+ s +".request.log"));
         } catch (FileNotFoundException e) {
             System.err.println("restsec.Evaluator: No log found.");
             System.exit(0);
@@ -67,30 +68,20 @@ public class Evaluator {
         }
     }
 
-    /*
-    @Deprecated
-    private void writeEvaluationToFile(JSONObject results){
-        try {
-
-            FileWriter file = new FileWriter("restsec-samples/src/main/resources/results/results.json", true);
-
-            ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-            String output = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(results);
-
-            file.write(output);
-            file.flush();
-            file.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("restsec.Parser: AttackSet written to File.");
-
-    }
-    */
-
     public static void writeVulnerabilityToFile(String vulnType, String endpoint, String payload, String comment) {
+
+        File f = new File("src/main/resources/results/results.json");
+
+        if (!f.isFile()) {
+            try {
+                FileWriter fileWriter = new FileWriter(f, false);
+                fileWriter.write("{}");
+                fileWriter.flush();
+                fileWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         vulnerabilityCounter++;
 
@@ -100,7 +91,7 @@ public class Evaluator {
 
         //read existing (father object)
         try {
-            existingJsonObject = (com.google.gson.JsonObject) parser.parse(new FileReader("restsec-samples/src/main/resources/results/results.json"));
+            existingJsonObject = (com.google.gson.JsonObject) parser.parse(new FileReader("src/main/resources/results/results.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -120,7 +111,7 @@ public class Evaluator {
         existingJsonObject.add(String.valueOf(vulnerabilityCounter), new Gson().toJsonTree(newJsonObject));
 
         try {
-            FileWriter file = new FileWriter("restsec-samples/src/main/resources/results/results.json", false);
+            FileWriter file = new FileWriter("src/main/resources/results/results.json", false);
             String jsonOutput = gsonBuilder.toJson(existingJsonObject);
             file.write(jsonOutput);
             file.flush();

@@ -1,10 +1,4 @@
 package restsec;
-//IDEA: Scanning REST APIs is complicated without documentation. This class reads Documentations
-//in the json Format, parses them and creates and attack set for the scanner.
-//
-// Swagger (yes)
-// Spring (working on it)
-// ...
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -23,49 +17,48 @@ import java.util.regex.Pattern;
 
 import static io.restassured.RestAssured.get;
 
-public class Parser implements Runnable {
+class Parser implements Runnable {
 
     private String entryPointOrDocumentationFile = "";
+    private final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     private boolean useAllPossibleHTTPMethodsForAttack = false;
-    private String docType = "";
+    private String whichParser = "";
 
-    //pretty printing
-    ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-
-    public Parser(String entryPointOrDocumentationFile, String docType, boolean useAllPossibleHTTPMethodsForAttack) {
-        this.entryPointOrDocumentationFile = entryPointOrDocumentationFile;
+    Parser(String documentationFileSwagger, boolean useAllPossibleHTTPMethodsForAttack) {
+        this.entryPointOrDocumentationFile = documentationFileSwagger;
         this.useAllPossibleHTTPMethodsForAttack = useAllPossibleHTTPMethodsForAttack;
-        this.docType = docType;
+        whichParser = "Swagger";
+    }
+
+    Parser(String entryPointHATEOAS) {
+        this.entryPointOrDocumentationFile = entryPointHATEOAS;
+        whichParser = "HATEOAS";
     }
 
     public void run() {
-        switch (docType) {
-            case "HATEOAS" :
-                //run HATEOAS Parsing
+        switch (whichParser) {
+            case "Swagger":
+                parseSwaggerJSON(this.entryPointOrDocumentationFile, useAllPossibleHTTPMethodsForAttack);
+                break;
+            case "HATEOAS":
                 discoverLinksForHATEOAS(this.entryPointOrDocumentationFile);
                 break;
-            case "Swagger" :
-                //run Swagger Parsing
-                parseSwaggerJSON(this.entryPointOrDocumentationFile, this.useAllPossibleHTTPMethodsForAttack);
-                break;
-            default :
-                System.err.println("Could not recognize specified documentation type.");
-                System.exit(0);
+            default:
                 break;
         }
     }
 
     @SuppressWarnings("unchecked")
-    private void parseSwaggerJSON(String file, boolean useAllHTTPMethods) {
+    private void parseSwaggerJSON(String swaggerFile, boolean useAllHTTPMethods) {
         JSONParser jsonParser = new JSONParser();
 
         try {
-            @SuppressWarnings("ConstantConditions") JSONObject jsonObj = (JSONObject) jsonParser.parse(new FileReader(getClass().getClassLoader().getResource(file).getFile()));
+            JSONObject jsonObject = (JSONObject) jsonParser.parse(new FileReader(swaggerFile));
 
-            String version = (String) jsonObj.get("swagger");
-            String host = (String) jsonObj.get("host");
-            String basePath = (String) jsonObj.get("basePath");
-            JSONObject pathsObj = (JSONObject) jsonObj.get("paths");
+            String version = (String) jsonObject.get("swagger");
+            String host = (String) jsonObject.get("host");
+            String basePath = (String) jsonObject.get("basePath");
+            JSONObject pathsObj = (JSONObject) jsonObject.get("paths");
 
             System.out.println("Swagger Version: \t" + version);
             System.out.println("Host: \t\t\t\t" + host);
@@ -82,7 +75,7 @@ public class Parser implements Runnable {
         }
     }
 
-    private void discoverLinksForHATEOAS(String entryResource){
+    private void discoverLinksForHATEOAS(String entryResource) {
         JSONObject attackSet = new JSONObject();
         //System.out.println("restsec.Parser: Starting endpoint discovery for HATEOAS on "+entryResource+" ...");
 
@@ -115,9 +108,11 @@ public class Parser implements Runnable {
             attackSet.put(key, relevantURLs.get(key));
         }
 
-            writeAttackSetToFile(createCompleteHTTPMethodAttackSetJSON(attackSet));
+        writeAttackSetToFile(createCompleteHTTPMethodAttackSetJSON(attackSet));
 
     }
+
+    // Supporting Methods
 
     private HashMap<String, Boolean> getHATEOASLinks(String resource) {
 
@@ -170,7 +165,7 @@ public class Parser implements Runnable {
         //find bigger one
         HashMap<String, Boolean> smallMap, bigMap;
 
-        if (map1.size() >= map2.size()){
+        if (map1.size() >= map2.size()) {
             bigMap = map1;
             smallMap = map2;
         } else {
@@ -234,7 +229,7 @@ public class Parser implements Runnable {
             }
 
         }
-        System.out.println("restsec.Parser: "+attackCounter + " possible attack points found.");
+        System.out.println("restsec.Parser: " + attackCounter + " possible attack points found.");
         return attackSet;
     }
 
@@ -251,16 +246,16 @@ public class Parser implements Runnable {
             attackSet.put(currentPath, array);
         }
 
-        System.out.println("restsec.Parser: attackSet created for bruteforcing (size: "+pathsObject.size() * 4+")");
+        System.out.println("restsec.Parser: attackSet created for bruteforcing (size: " + pathsObject.size() * 4 + ")");
         return attackSet;
     }
 
-    private void writeAttackSetToFile(JSONObject attackSet){
+    private void writeAttackSetToFile(JSONObject attackSet) {
         printAttackSet(attackSet);
 
         try {
 
-            FileWriter file = new FileWriter("restsec-samples/src/main/resources/attackable/attackable.json");
+            FileWriter file = new FileWriter("src/main/resources/attackable/attackset.json");
 
             String output = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(attackSet);
 
@@ -276,7 +271,7 @@ public class Parser implements Runnable {
 
     }
 
-    public void printAttackSet(JSONObject attackSet){
+    private void printAttackSet(JSONObject attackSet) {
         System.out.println("--- Attack Set ---");
         for (Object key : attackSet.keySet()) {
             System.out.println(key + " : " + attackSet.get(key));

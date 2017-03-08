@@ -1,9 +1,6 @@
 package restsec;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 class ControllerTest {
     @BeforeEach
@@ -11,8 +8,9 @@ class ControllerTest {
 
     }
 
+    @Disabled
     @Test
-    @DisplayName("Testing the restsec.Controller")
+    @DisplayName("Testing the Controller (no content yet)")
     void controllerTest() {
         System.out.println("controllerTest");
     }

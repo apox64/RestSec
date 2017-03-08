@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Properties;
 
-public class Controller {
+class Controller {
 
     private static String entryPointHATEOAS = "";
     private static String swaggerLocation = "";
@@ -17,7 +17,7 @@ public class Controller {
     private static boolean allHTTPMethods = false;
     private static boolean deleteOldResultsFile = true;
 
-    public Controller() {
+    private Controller() {
             loadProperties();
     }
 
@@ -26,20 +26,26 @@ public class Controller {
         new Controller();
 
         if (deleteOldResultsFile) {
-            Files.deleteIfExists(new File("restsec-samples/src/main/resources/results/results.json").toPath());
+            Files.deleteIfExists(new File("src/main/resources/results/results.json").toPath());
             System.out.println("restsec.Controller: results.json deleted.");
         }
-
-        Thread parser = null;
 
         switch (documentationType.toLowerCase()) {
             case "swagger" :
                 System.out.println("restsec.Controller: Using Swagger Documentation : "+swaggerLocation+" (All HTTP Methods: "+allHTTPMethods+")");
-                parser = new Thread(new Parser(swaggerLocation, "Swagger", allHTTPMethods));
+                Thread parserSwagger = new Thread(new Parser(swaggerLocation, allHTTPMethods));
+                System.err.println(">>> restsec.Controller: Starting parser thread ... ");
+                parserSwagger.start();
+                parserSwagger.join();
+                System.err.println(">>> restsec.Controller: restsec.Parser thread finished.");
                 break;
             case "hateoas" :
                 System.out.println("restsec.Controller: Following HATEOAS links on : "+entryPointHATEOAS);
-                parser = new Thread(new Parser(entryPointHATEOAS, "HATEOAS", allHTTPMethods));
+                Thread parserHATEOAS = new Thread(new Parser(entryPointHATEOAS));
+                System.err.println(">>> restsec.Controller: Starting parser thread ... ");
+                parserHATEOAS.start();
+                parserHATEOAS.join();
+                System.err.println(">>> restsec.Controller: restsec.Parser thread finished.");
                 break;
             default:
                 System.err.println("Documentation Type not supported.");
@@ -47,30 +53,26 @@ public class Controller {
                 break;
         }
 
-        System.err.println(">>> restsec.Controller: Starting parser thread ... ");
-        parser.start();
-        // Waiting for restsec.Parser to finish
-        parser.join();
-        System.err.println(">>> restsec.Controller: restsec.Parser thread finished.");
-
         //Starting a restsec.Scanner
         switch (scanForVulnerabilityTypes.toLowerCase()) {
             case "xss":
-                Scanner scannerXSS = new Scanner("attackable/attackable.json", xssPayloadsFile);
-                scannerXSS.scanXSS();
+                Thread scannerXSS = new Thread(new Scanner("src/main/resources/attackable/attackset.json", xssPayloadsFile, "xss"));
+                scannerXSS.start();
+                scannerXSS.join();
                 break;
             case "sqli":
-                Scanner scannerSQLi = new Scanner("attackable/attackable.json", sqliPayloadsFile);
-                scannerSQLi.scanSQLi();
+                Thread scannerSQLi = new Thread(new Scanner("src/main/resources/attackable/attackset.json", sqliPayloadsFile, "sqli"));
+                scannerSQLi.start();
+                scannerSQLi.join();
                 break;
             case "all":
                 //Loop over all payload files in "payloads" folder.
-                final File folder = new File("restsec-samples/src/main/resources/payloads/");
+                final File folder = new File("src/main/resources/payloads/");
                 //noinspection ConstantConditions
                 for (final File fileEntry : folder.listFiles()) {
-                    Scanner scanner = new Scanner("attackable/attackable.json", "payloads/"+fileEntry.getName());
-                    scanner.scanXSS();
-                    scanner.scanSQLi();
+                    Thread scanner = new Thread(new Scanner("src/main/resources/attackable/attackset.json", "src/main/resources/payloads/"+fileEntry.getName(), "all"));
+                    scanner.start();
+                    scanner.join();
                 }
                 break;
             default:
@@ -78,7 +80,6 @@ public class Controller {
                 System.exit(0);
         }
 
-        // Starting an restsec.Evaluator (static)
         Evaluator.evaluateLogfile();
 
         System.err.println(">>> RestSec terminated.");
@@ -94,27 +95,6 @@ public class Controller {
             ioe.printStackTrace();
         }
 
-        /*
-        // Load config for Rest-assured
-        //System.out.print("Config for Rest-Assured: ");
-        RestAssured.baseURI = properties.getProperty("base-uri");
-        //System.out.print("baseURI : "+RestAssured.baseURI);
-        RestAssured.port = Integer.parseInt(properties.getProperty("port"));
-        //System.out.print(" port : "+RestAssured.port);
-        RestAssured.basePath = properties.getProperty("base-path");
-        //System.out.println(" basePath : "+RestAssured.basePath);
-
-        String baseURL = properties.getProperty("base-uri") + ":" + properties.getProperty("port");
-
-        if (!properties.getProperty("proxy_ip").equals("")) {
-            RestAssured.proxy(properties.getProperty("proxy_ip"), Integer.parseInt(properties.getProperty("proxy_port")));
-            System.out.println("proxy : "+RestAssured.proxy);
-        } else {
-            System.out.println("proxy : no proxy set in config.properties");
-        }
-        */
-
-        // Load config for scan modes and documentation type
         documentationType = properties.getProperty("documentationType");
         entryPointHATEOAS = properties.getProperty("entryPointHATEOAS");
         swaggerLocation = properties.getProperty("swaggerLocation");

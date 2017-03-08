@@ -14,63 +14,63 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
-public class CallbackPage {
 
-    //opens jetty server and waits for input
+class CallbackPage {
 
-    //if you change the port, you have to change the payload value as well
-    private static int port = 5555;
-    private static Server server = new Server(port);
-    private ChromeDriver chromeDriver;
+    //if you change the port, you have to change the payload value as well (otherwise payload won't call back
+    private static final int port = 5555;
+    private static final Server server = new Server(port);
+    private static ChromeDriver chromeDriver;
+    private static final boolean deleteOldLogs = true;
 
-    private Logger logger = Logger.getLogger(CallbackPage.class.getName());
+//    private static Logger logger = Logger.getLogger(CallbackPage.class.getName());
 
-    public CallbackPage() {
-        configureJettyLogging(true);
+    CallbackPage() {
+        configureJettyLogging(deleteOldLogs);
     }
 
     private static void configureJettyLogging(boolean deleteOldLogs) {
 
-        // Setting Jetty logger implementation and level (DEBUG | INFO | WARN | IGNORE)
-        //TODO: Reduce Jetty console Logging to warnings only (reduced terminal output)
-        System.setProperty("org.eclipse.jetty.util.log.class", "org.eclipse.jetty.util.log.JavaUtilLog");
+//        Setting Jetty logger implementation and level (DEBUG | INFO | WARN | IGNORE)
+//        TODO: Reduce Jetty console Logging to warnings only (reduced terminal output)
+//        System.setProperty("org.eclipse.jetty.util.log.class", "org.eclipse.jetty.util.log.JavaUtilLog");
         System.setProperty("org.eclipse.jetty.util.log.class.LEVEL", "WARN");
 
+
         if (deleteOldLogs) {
-            File directory = new File("restsec-samples/src/main/resources/jetty-logs/");
+            File directory = new File("src/main/resources/jetty-logs/");
 
             //noinspection ConstantConditions
-            for(File f : directory.listFiles()) {
+            for (File f : directory.listFiles()) {
                 //noinspection ResultOfMethodCallIgnored
                 f.delete();
             }
         }
 
-        NCSARequestLog requestLog = new NCSARequestLog("restsec-samples/src/main/resources/jetty-logs/jetty-yyyy_mm_dd.request.log");
+        NCSARequestLog requestLog = new NCSARequestLog("src/main/resources/jetty-logs/jetty-yyyy_mm_dd.request.log");
 
         requestLog.setAppend(false);
         requestLog.setExtended(false);
         requestLog.setLogTimeZone("GMT");
         requestLog.setLogLatency(true);
-        requestLog.setRetainDays(90);
+        requestLog.setRetainDays(31);
 
         server.setRequestLog(requestLog);
 
     }
 
-    public void startTestPageServer() {
+    void startTestPageServer() {
         try {
             server.start();
-            System.out.println("restsec.CallbackPage: Jetty Server started. Listening on "+port+" ... ");
-            logger.info("Jetty Server started on port "+port);
+            System.out.println("restsec.CallbackPage: Jetty Server started. Listening on " + port + " ... ");
+//            logger.info("Jetty Server started on port "+port);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void stopTestPageServer() {
+    void stopTestPageServer() {
         try {
             server.stop();
             System.out.println("restsec.CallbackPage: Jetty Server stopped.");
@@ -91,43 +91,30 @@ public class CallbackPage {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        proxy.setHttpProxy(properties.getProperty("proxy_ip")+":"+properties.getProperty("proxy_port"));
+        proxy.setHttpProxy(properties.getProperty("proxy_ip") + ":" + properties.getProperty("proxy_port"));
         capabilities.setCapability("proxy", proxy);
-        this.chromeDriver = new ChromeDriver(capabilities);
+        chromeDriver = new ChromeDriver(capabilities);
     }
 
     //this lets you actually execute the stored xss payload by reloading the page (with selenium webdriver)
-    public boolean hasAlertOnReload(String url){
+    boolean hasAlertOnReload(String url) {
         boolean hasAlert = false;
 
         System.out.print("restsec.CallbackPage: Creating ChromeDriver ... ");
         setWebDriver();
         System.out.print("restsec.CallbackPage: Getting URL: " + url + " ... ");
-        chromeDriver.manage().timeouts().pageLoadTimeout(5, TimeUnit.SECONDS);
+        chromeDriver.manage().timeouts().pageLoadTimeout(3, TimeUnit.SECONDS);
         chromeDriver.get(url);
-        System.out.println("Done.");
-
-        /*
-        try {
-            System.out.print("restsec.CallbackPage: Sleeping for 0.25 seconds ... ");
-            Thread.sleep(250);
-            System.out.println("Done.");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        */
-
-        //System.out.print("restsec.CallbackPage: Refreshing ... ");
 
         //click alert automatically, if there is one
         try {
-            WebDriverWait wait = new WebDriverWait(chromeDriver, 1);
             System.out.print("restsec.CallbackPage: Waiting for alert ... ");
+            WebDriverWait wait = new WebDriverWait(chromeDriver, 1);
             wait.until(ExpectedConditions.alertIsPresent());
             System.out.println("Alert found (payload worked!)");
             hasAlert = true;
             chromeDriver.switchTo().alert().accept();
-        } catch (TimeoutException te){
+        } catch (TimeoutException te) {
             System.out.println("No alert found.");
         }
 
@@ -146,10 +133,9 @@ public class CallbackPage {
         */
 
         chromeDriver.close();
-        System.out.println("Done.");
 
         return hasAlert;
 
     }
-
 }
+

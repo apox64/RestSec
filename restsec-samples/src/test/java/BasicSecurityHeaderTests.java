@@ -24,7 +24,7 @@ class BasicSecurityHeaderTests {
 
     private static String email;
     private static String password;
-    private static String resource = "rest/user/login";
+    private static final String resource = "rest/user/login";
 
     @BeforeAll
     public static void init() throws IOException {
@@ -34,14 +34,14 @@ class BasicSecurityHeaderTests {
         loadProperties();
 
         if (!proxyIp.equals("") && proxyPort != 0) {
-            if (isOnline(proxyIp,proxyPort)){
+            if (isOnline(proxyIp, proxyPort)) {
                 System.out.println("Proxy online.");
             } else {
                 Assertions.fail("Proxy unreachable.");
             }
         }
 
-        if (isOnline(serverIP,serverPort)) {
+        if (isOnline(serverIP, serverPort)) {
             System.out.println("Target online.");
         } else {
             Assertions.fail("Target unreachable.");
@@ -56,7 +56,7 @@ class BasicSecurityHeaderTests {
     private static void loadProperties() {
         Properties properties = new Properties();
 
-        try(InputStream stream = JuiceShopBasic.class.getClassLoader().getResourceAsStream("config.properties")){
+        try (InputStream stream = JuiceShopBasic.class.getClassLoader().getResourceAsStream("config.properties")) {
             properties.load(stream);
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,12 +68,12 @@ class BasicSecurityHeaderTests {
         m.find();
         serverIP = m.group(0);
         serverPort = Integer.parseInt(properties.getProperty("port"));
-        System.out.println("Target: "+serverIP+":"+serverPort);
+        System.out.println("Target: " + serverIP + ":" + serverPort);
 
         if (!properties.getProperty("proxy_ip").equals("")) {
             proxyIp = properties.getProperty("proxy_ip");
             proxyPort = Integer.parseInt(properties.getProperty("proxy_port"));
-            System.out.println("Proxy: "+proxyIp+":"+proxyPort);
+            System.out.println("Proxy: " + proxyIp + ":" + proxyPort);
         } else {
             System.out.println("Proxy: -");
         }
@@ -94,7 +94,7 @@ class BasicSecurityHeaderTests {
 
         Properties properties = new Properties();
 
-        try(InputStream stream = JuiceShopBasic.class.getClassLoader().getResourceAsStream("config.properties")){
+        try (InputStream stream = JuiceShopBasic.class.getClassLoader().getResourceAsStream("config.properties")) {
             properties.load(stream);
         }
 
@@ -111,108 +111,181 @@ class BasicSecurityHeaderTests {
         password = properties.getProperty("password");
     }
 
-    @Nested
-    public class ContentTypeTests {
-        @Test
-        @DisplayName("Reflecting back any given Content-Type Header?")
-        //NOTE: Does the server copy the clients Accept-Header in the response Content-Type? 401/406 expected.
-        public void invalidAcceptHeaderReflected() {
+    @Test
+    @DisplayName("Reflecting back any given Content-Type Header")
+    //NOTE: Does the server copy the clients Accept-Header in the response Content-Type? 401/406 expected.
+    public void invalidAcceptHeaderReflected() {
 
-            Response response =
-                    given().
-                    request().
-                        header("Accept","myHeader").
-                        body("{\"email\":\""+email+"\",\"password\":\""+password+"\"}").
+        Response response =
+                given().
+                        request().
+                        header("Accept", "myHeader").
+                        body("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}").
                         contentType(ContentType.JSON).
-                    when().
+                        when().
                         post(resource);
 
-            if (response.getHeader("Content-Type").equals("myHeader")) {
-                Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "Content-Type: myHeader", "Reflected invalid header type.");
-                Assertions.fail("Fake Request Accept-Header was reflected in Response Content-Type. Missing server-side validation?");
-            }
+        if (response.getHeader("Content-Type").equals("myHeader")) {
+            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "Content-Type: myHeader", "Reflected invalid header type.");
+            Assertions.fail("Fake Request Accept-Header was reflected in Response Content-Type. Missing server-side validation?");
         }
+    }
 
-        @Test
-        @DisplayName("Accepting mismatching Content-Type Header with actual content?")
-        //NOTE: Gives a Content-Type Header, but sends other data.
-        public void mismatchingContentTypeHeader(){
+    @Test
+    @DisplayName("Mismatching Content-Type Header with actual content accepted")
+    //NOTE: Gives a Content-Type Header, but sends other data.
+    public void mismatchingContentTypeHeader() {
 
-            Response response =
-                    given().
-                    request().
-                        body("{\"email\":\""+email+"\",\"password\":\""+password+"\"}").
+        Response response =
+                given().
+                        request().
+                        body("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}").
                         contentType(ContentType.URLENC).
-                    when().
+                        when().
                         post(resource);
 
-            int statusCode = response.getStatusCode();
+        int statusCode = response.getStatusCode();
 
-            if (statusCode == 200) {
-                Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "Content-Type: URLENC", "Server accepted Content-Type: URLENC when sending different Content-Type.");
-                Assertions.fail(">>> Server accepted Content-Type: URLENC when sending different Content-Type.");
-            }
-
+        if (statusCode == 200) {
+            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "Content-Type: URLENC", "Server accepted Content-Type: URLENC when sending different Content-Type.");
+            Assertions.fail(">>> Server accepted Content-Type: URLENC when sending different Content-Type.");
         }
 
-        @Test
-        @DisplayName("X-Content-Type-Options: nosniff")
-        //NOTE: Checks for common security header X-Content-Type-Options: nosniff
-        public void securityHeader_XContentTypeOptions() {
-            Response response =
-                    given().
-                    request().
-                        body("{\"email\":\""+email+"\",\"password\":\""+password+"\"}").
+    }
+
+    @Test
+    @DisplayName("X-Content-Type-Options: nosniff")
+    //NOTE: Checks for common security header X-Content-Type-Options: nosniff
+    public void securityHeader_XContentTypeOptions() {
+        Response response =
+                given().
+                        request().
+                        body("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}").
                         contentType(ContentType.JSON).
-                    when().
+                        when().
                         post(resource);
 
-            if (!response.getHeader("X-Content-Type-Options").equals("nosniff")) {
-                Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "X-Content-Type-Options: nosniff", "Security-Header \"X-Content-Type-Options: nosniff\" missing.");
-                Assertions.fail("Security-Header \"X-Content-Type-Options: nosniff\" not found.");
-            }
+        if (!response.getHeader("X-Content-Type-Options").equals("nosniff")) {
+            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "X-Content-Type-Options: nosniff", "Security-Header \"X-Content-Type-Options: nosniff\" missing.");
+            Assertions.fail("Security-Header \"X-Content-Type-Options: nosniff\" not found.");
         }
+    }
 
-        @Test
-        @DisplayName("X-Frame-Options: SAMEORIGIN")
-        //NOTE: Checks for common security header X-Frame-Options: SAMEORIGIN
-        public void securityHeader_XFrameOptions() {
-            Response response =
-                    given().
-                    request().
-                        body("{\"email\":\""+email+"\",\"password\":\""+password+"\"}").
+    @Test
+    @DisplayName("X-Frame-Options: SAMEORIGIN")
+    //NOTE: Checks for common security header X-Frame-Options: SAMEORIGIN
+    public void securityHeader_XFrameOptions() {
+        Response response =
+                given().
+                        request().
+                        body("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}").
                         contentType(ContentType.JSON).
-                    when().
+                        when().
                         post(resource);
 
-            if (!response.getHeader("X-Frame-Options").equals("SAMEORIGIN")) {
-                Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "X-Frame-Options: SAMEORIGIN", "Security-Header \"X-Frame-Options: SAMEORIGIN\" missing.");
-                Assertions.fail("Security-Header \"X-Frame-Options: SAMEORIGIN\" not found.");
-            }
+        if (!response.getHeaders().hasHeaderWithName("X-Frame-Options")) {
+            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "X-Frame-Options", "Security-Header \"X-Frame-Options\" missing.");
+            Assertions.fail("Security-Header \"X-Frame-Options\" not found.");
         }
+        if (!response.getHeader("X-Frame-Options").equals("SAMEORIGIN") || !response.getHeader("X-Frame-Options").equals("deny")) {
+            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "X-Frame-Options: \"SAMEORIGIN\" OR \"deny\"", "Security-Header \"X-Frame-Options: SAMEORIGIN\" OR \"deny\" missing.");
+            Assertions.fail("Security-Header \"X-Frame-Options: SAMEORIGIN\" not found.");
+        }
+    }
 
-
-        //@Test
-        @DisplayName("Accepting request with no Content-Type Header at all?")
-                //JUnit 4: (expected = AssertionError.class)
-        //NOTE: No Content-Type header at all. 401/406 expected.
-        //TODO: rest-assured always adds a content-type header (text/plain)
-        public void noContentTypeHeader(){
-
-            Response response =
-                    given().
-                    request().
-                        body("{\"email\":\""+email+"\",\"password\":\""+password+"\"}").
-                    when().
+    @Test
+    @DisplayName("X-XSS-Protection Header")
+    public void securityHeader_XXSSProtection() {
+        Response response =
+                given().
+                        request().
+                        body("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}").
+                        contentType(ContentType.JSON).
+                        when().
                         post(resource);
 
-            int statusCode = response.getStatusCode();
+        if (!response.getHeaders().hasHeaderWithName("X-XSS-Protection")) {
+            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "X-XSS-Protection", "Security-Header \"X-XSS-Protection\" missing.");
+            Assertions.fail("Security-Header \"X-XSS-Protection\" missing.");
+        }
+    }
 
-            if (statusCode == 200) {
-                Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "No Content-Type Header", "Target accepted not using a content-type header at all (200 OK).");
-                Assertions.fail(">>> Server accepted not using a content-type header : 200 OK");
-            }
+    @Disabled
+    @Test
+    @DisplayName("Request with no Content-Type Header at all accepted")
+    //JUnit 4: (expected = AssertionError.class)
+    //NOTE: No Content-Type header at all. 401/406 expected.
+    //TODO: rest-assured always adds a content-type header (text/plain)
+    public void noContentTypeHeader() {
+
+        Response response =
+                given().
+                        request().
+                        body("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}").
+                        when().
+                        post(resource);
+
+        int statusCode = response.getStatusCode();
+
+        if (statusCode == 200) {
+            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "No Content-Type Header", "Target accepted not using a content-type header at all (200 OK).");
+            Assertions.fail(">>> Server accepted not using a content-type header : 200 OK");
+        }
+    }
+
+    @Test
+    @DisplayName("Always using HTTPS (Strict-Transport-Security)")
+    public void strictTransportSecurityHeader() {
+        Response response =
+                given().
+                        request().
+                        body("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}").
+                        contentType(ContentType.JSON).
+                        when().
+                        post(resource);
+
+        if (!response.getHeaders().hasHeaderWithName("Strict-Transport-Security")) {
+            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "Strict-Transport-Security", "Security-Header \"Strict-Transport-Security\" missing.");
+            Assertions.fail("Security-Header \"Strict-Transport-Security\" missing.");
+
+        }
+    }
+
+    @Test
+    @DisplayName("Content-Security-Policy")
+    public void contentSecurityPolicyExists() {
+        Response response =
+                given().
+                        request().
+                        body("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}").
+                        contentType(ContentType.JSON).
+                        when().
+                        post(resource);
+
+        if (!response.getHeaders().hasHeaderWithName("Content-Security-Policy")) {
+            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "Content-Security-Policy", "Security-Header \"Content-Security-Policy\" missing.");
+            Assertions.fail("Security-Header \"Content-Security-Policy\" missing.");
+
+        }
+    }
+
+    @Test
+    @DisplayName("X-Permitted-Cross-Domain-Policies")
+    public void permittedCrossDomainPoliciesExists() {
+        Response response =
+                given().
+                        request().
+                        body("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}").
+                        contentType(ContentType.JSON).
+                        when().
+                        post(resource);
+
+        if (!response.getHeaders().hasHeaderWithName("X-Permitted-Cross-Domain-Policies")) {
+            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "X-Permitted-Cross-Domain-Policies", "Security-Header \"X-Permitted-Cross-Domain-Policies\" missing.");
+            Assertions.fail("Security-Header \"X-Permitted-Cross-Domain-Policies\" missing.");
+
         }
     }
 
 }
+

@@ -25,7 +25,7 @@ public class JuiceShopBasic {
 
     private static String email;
     private static String password;
-    private static String loginPath = "rest/user/login";
+    private static final String loginPath = "rest/user/login";
 
     @BeforeClass
     //NOTE: Load Properties (set URL, Port, Proxy, Admin-Login)

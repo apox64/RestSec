@@ -1,60 +1,170 @@
 package restsec;
-
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 
 class ParserTest {
     @BeforeEach
     void setUp() {
-
+        //empty
     }
 
     @AfterEach
     void tearDown() {
+        //empty
+    }
+
+    @Test
+    @DisplayName("HATEOAS Parser for spring-hateoas-demo")
+    void parserHATEOASSpringDemo() {
+        Thread parserThread = new Thread(new restsec.Parser("http://localhost:10001/albums/"));
+        parserThread.start();
+
+        try {
+            parserThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        JsonObject attackSetFromFile = new JsonObject();
+
+        try {
+            attackSetFromFile = (JsonObject) new JsonParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        //Assertions.assertEquals(9, attackSetFromFile.entrySet().size(), "Are all HATEOAS Links even offered? (Some might somtimes show up and sometimes not.)");
+        Assertions.assertTrue(attackSetFromFile.entrySet().size() >= 6);
+        Assertions.assertTrue(attackSetFromFile.entrySet().size() <= 9);
 
     }
 
     @Test
-    @DisplayName("Testing restsec.Parser for correct output")
-    void testParser() {
-        //restsec.Parser p = new restsec.Parser("http://localhost:10001/albums/", "HATEOAS", true);
-        //JSONObject jsonObject = new JSONObject();
-        Assertions.assertEquals(22, 22);
+    @DisplayName("Swagger Parser for swagger-juiceshop-short.json, not all HTTP methods")
+    void parserSwaggerJuiceShopShortNotAllHTTPMethods() {
+        Thread parserThread = new Thread(new restsec.Parser("src/main/resources/docs_swagger/swagger-juiceshop-short.json", false));
+        parserThread.start();
+
+        try {
+            parserThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        JsonObject attackSetFromFile = new JsonObject();
+
+        try {
+            attackSetFromFile = (JsonObject) new JsonParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        Assertions.assertTrue(attackSetFromFile.entrySet().size() == 1);
+        Assertions.assertTrue(attackSetFromFile.get("/api/Products/1").toString().equals("[\"PUT\"]"));
     }
 
     @Test
-    @DisplayName("Adding two numbers")
-    void testMergingHashMaps() {
+    @DisplayName("Swagger Parser for swagger-juiceshop-short.json, with all HTTP methods")
+    void parserSwaggerJuiceShopShortWithAllHTTPMethods() {
+        Thread parserThread = new Thread(new restsec.Parser("src/main/resources/docs_swagger/swagger-juiceshop-short.json", true));
+        parserThread.start();
 
-        int a = 10;
-        int b = 12;
+        try {
+            parserThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-        assertThat(Integer.toString(a+b)).isEqualTo("22");
+        JsonObject attackSetFromFile = new JsonObject();
 
-        /*
-        HashMap<String, Boolean> map1 = new HashMap<>();
-        HashMap<String, Boolean> map2 = new HashMap<>();
-        HashMap<String, Boolean> result = new HashMap<>();
+        try {
+            attackSetFromFile = (JsonObject) new JsonParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 
-        map1.put("http://localhost:10001/album/1", false);
-        map1.put("http://localhost:10001/album/3", false);
-        map1.put("http://localhost:10001/artist/cfrost", true);
-        map1.put("http://localhost:10001/album/purchase/3", false);
+        Assertions.assertTrue(attackSetFromFile.entrySet().size() == 2);
+        Assertions.assertTrue(attackSetFromFile.get("/api/Products/1").toString().equals("[\"POST\",\"PATCH\",\"PUT\",\"DELETE\"]"));
+    }
 
-        map2.put("http://localhost:10001/album/1", true);
-        map2.put("http://localhost:10001/album/cfrost", false);
-        map2.put("http://localhost:10001/album/3", false);
+    @Test
+    @DisplayName("Swagger Parser for swagger-juiceshop.json, not all HTTP methods")
+    void parserSwaggerJuiceShopFullNotAllHTTPMethods() {
 
-        result.put("http://localhost:10001/album/1", true);
-        result.put("http://localhost:10001/album/3", false);
-        result.put("http://localhost:10001/artist/cfrost", true);
-        result.put("http://localhost:10001/album/purchase/3", false);
+        Thread parserThread = new Thread(new restsec.Parser("src/main/resources/docs_swagger/swagger-juiceshop.json", false));
+        parserThread.start();
 
-        restsec.Parser p = new restsec.Parser(null,null,false);
-        assert (p.mergeHashMaps(map1, map2).keySet().equals(result.keySet()));
-        */
+        try {
+            parserThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
+        JsonObject attackSetFromFile = new JsonObject();
+
+        try {
+            attackSetFromFile = (JsonObject) new JsonParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        Assertions.assertTrue(attackSetFromFile.entrySet().size() == 6);
+        Assertions.assertTrue(attackSetFromFile.get("/stores/order").toString().equals("[\"PUT\"]"));
+        Assertions.assertTrue(attackSetFromFile.get("/rest/user/login").toString().equals("[\"POST\"]"));
+        Assertions.assertTrue(attackSetFromFile.get("/api/Products/1").toString().equals("[\"PUT\"]"));
+    }
+
+    @Test
+    @DisplayName("Swagger Parser for swagger-juiceshop.json, with all HTTP methods")
+    void parserSwaggerJuiceShopFullWithAllHTTPMethods() {
+        Thread parserThread = new Thread(new restsec.Parser("src/main/resources/docs_swagger/swagger-juiceshop.json", true));
+        parserThread.start();
+
+        try {
+            parserThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        JsonObject attackSetFromFile = new JsonObject();
+
+        try {
+            attackSetFromFile = (JsonObject) new JsonParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        Assertions.assertTrue(attackSetFromFile.entrySet().size() == 9);
+        Assertions.assertTrue(attackSetFromFile.get("/stores/order").toString().equals("[\"POST\",\"PATCH\",\"PUT\",\"DELETE\"]"));
+        Assertions.assertTrue(attackSetFromFile.get("/rest/user/login").toString().equals("[\"POST\",\"PATCH\",\"PUT\",\"DELETE\"]"));
+        Assertions.assertTrue(attackSetFromFile.get("/api/Products/1").toString().equals("[\"POST\",\"PATCH\",\"PUT\",\"DELETE\"]"));
+    }
+
+    @Test
+    @DisplayName("Swagger Parser for instagram-api-test.json, not all HTTP methods")
+    void parserSwaggerInstagramAPINotAllHTTPMethods() {
+        Thread parserThread = new Thread(new restsec.Parser("src/main/resources/docs_swagger/swagger-instagram-api-test.json", false));
+        parserThread.start();
+
+        try {
+            parserThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        JsonObject attackSetFromFile = new JsonObject();
+
+        try {
+            attackSetFromFile = (JsonObject) new JsonParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        Assertions.assertTrue(attackSetFromFile.entrySet().size() == 3);
+        Assertions.assertTrue(attackSetFromFile.get("/media/{media-id}/comments").toString().equals("[\"POST\",\"DELETE\"]"));
     }
 
 }
