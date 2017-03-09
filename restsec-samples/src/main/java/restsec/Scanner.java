@@ -3,6 +3,7 @@ package restsec;// restsec.Scanner needs input:
 // - Payloads (from payloads/)
 
 import io.restassured.http.ContentType;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -15,6 +16,8 @@ import java.util.Properties;
 import static io.restassured.RestAssured.given;
 
 class Scanner implements Runnable {
+
+    private static final Logger logger = Logger.getLogger(Scanner.class);
 
     private JSONObject attackSet = new JSONObject();
     private JSONObject payloads = new JSONObject();
@@ -43,12 +46,12 @@ class Scanner implements Runnable {
                 attackSetSize += httpMethods.size();
             }
 
-            System.out.println("restsec.Scanner: "+attackSet.size()+" attackable endpoints loaded from file: "+attackSetFile);
+            logger.info(attackSet.size()+" attackable endpoints loaded from file: "+attackSetFile);
             //noinspection ConstantConditions
             payloads = (JSONObject) parser.parse(new FileReader(payloadsFile));
-            System.out.println("restsec.Scanner: "+payloads.size()+" payloads loaded from file: "+payloadsFile);
-            System.out.println("restsec.Scanner: "+attackSetSize*payloads.size()+" total attacks");
-            System.out.println("restsec.Scanner: Loading properties (baseURI, port, basePath, proxy ip, proxy port) ... ");
+            logger.info(payloads.size()+" payloads loaded from file: "+payloadsFile);
+            logger.info(attackSetSize*payloads.size()+" total attacks");
+            logger.info("Loading properties (baseURI, port, basePath, proxy ip, proxy port) ... ");
             loadProperties();
         } catch (Exception e) {
             e.printStackTrace();
@@ -64,43 +67,27 @@ class Scanner implements Runnable {
                 scanXSS();
                 scanSQLi();
             default:
-                System.err.println("restsec.Scanner: Unknown scan type.");
+                logger.error("Unknown scan type.");
                 break;
         }
     }
 
     private void loadProperties() throws IOException {
         Properties properties = new Properties();
-
         try(InputStream stream = Scanner.class.getClassLoader().getResourceAsStream("config.properties")){
             properties.load(stream);
         }
-
-        // Load config
-        /*RestAssured.baseURI = properties.getProperty("base-uri");
-        RestAssured.port = Integer.parseInt(properties.getProperty("port"));
-        RestAssured.basePath = properties.getProperty("base-path");
-        */
-
         this.baseURL = properties.getProperty("base-uri") + ":" + properties.getProperty("port") + properties.getProperty("base-path");
-
-        /*
-        if (!properties.getProperty("proxy_ip").equals("")) {
-            RestAssured.proxy(properties.getProperty("proxy_ip"), Integer.parseInt(properties.getProperty("proxy_port")));
-        }
-        */
-
-        System.out.println("Done.");
-
     }
 
     private void scanXSS() {
-        System.out.println("restsec.Scanner: Trying XSS payloads ...");
+        logger.info("Trying XSS payloads ...");
 
         int numberOfSentPackets = 0;
         int acceptedPackets = 0;
         int rejectedPackets = 0;
 
+        //TODO: For-Verschachtelung auslagern in Methoden
         //Where the executed payloads will call back to.
         callbackPage.startTestPageServer();
 
@@ -122,14 +109,14 @@ class Scanner implements Runnable {
 
                     // Filtering endpoints with curly brackets (numbers) - Not supported yet.
                     if (resource.contains("{")) {
-                        System.out.println("restsec.Scanner: Skipping " + resource + " (Curly bracket not yet implemented!");
+                        logger.info("Skipping " + resource + " (Curly bracket not yet implemented!");
                     } else {
-                        System.out.println("restsec.Scanner: Trying " + httpVerb + " on " + resource + " (Payload: \"" + payloadName + "\") ... ");
+                        logger.info("Trying " + httpVerb + " on " + resource + " (Payload: \"" + payloadName + "\") ... ");
                         numberOfSentPackets++;
                         try {
                             forgeRequest(resource, httpVerb, payload, 200);
                             //System.out.println("Accepted. (200 OK)");
-                            System.out.println("Accepted.");
+                            logger.info("Accepted.");
                             acceptedPackets++;
                             //callbackPage.reloadResource(baseURL+resource);
                             if (callbackPage.hasAlertOnReload(baseURL)) {
@@ -138,7 +125,7 @@ class Scanner implements Runnable {
 
                         } catch (AssertionError ae) {
                             //System.err.println(" Rejected. (Server Status Code does not match expected Code)");
-                            System.err.println(" Rejected.");
+                            logger.info("Rejected.");
                             rejectedPackets++;
                         }
 
@@ -160,7 +147,7 @@ class Scanner implements Runnable {
     }
 
     private void scanSQLi(){
-        System.out.println("restsec.Scanner: Trying SQLi ...");
+        logger.info("Trying SQLi ...");
         int numberOfSentPackets = 0;
         int acceptedPackets = 0;
         int rejectedPackets = 0;
@@ -220,7 +207,7 @@ class Scanner implements Runnable {
                         statusCode(expectedResponseCode);
                 break;
             default:
-                System.err.println("Unknown HTTP method.");
+                logger.warn("Unknown HTTP method.");
 
         }
 

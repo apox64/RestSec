@@ -2,8 +2,11 @@ package restsec;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.*;
+
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.net.URISyntaxException;
 
 class ParserTest {
     @BeforeEach
@@ -44,9 +47,11 @@ class ParserTest {
 
     @Test
     @DisplayName("Swagger Parser for swagger-juiceshop-short.json, not all HTTP methods")
-    void parserSwaggerJuiceShopShortNotAllHTTPMethods() {
-        Thread parserThread = new Thread(new restsec.Parser("src/main/resources/docs_swagger/swagger-juiceshop-short.json", false));
-        parserThread.start();
+    void parserSwaggerJuiceShopShortNotAllHTTPMethods() throws URISyntaxException {
+
+        String file = "docs_swagger/swagger-juiceshop-short.json";
+        Parser parser = createParserForFile(file, false);
+        Thread parserThread = createAndStartThread(parser);
 
         try {
             parserThread.join();
@@ -64,6 +69,20 @@ class ParserTest {
 
         Assertions.assertTrue(attackSetFromFile.entrySet().size() == 1);
         Assertions.assertTrue(attackSetFromFile.get("/api/Products/1").toString().equals("[\"PUT\"]"));
+    }
+
+    private Thread createAndStartThread(Parser parser) {
+        Thread parserThread = new Thread(parser);
+        parserThread.start();
+        return parserThread;
+    }
+
+    private Parser createParserForFile(String file, boolean useAllPossibleHTTPMethodsForAttack) throws URISyntaxException {
+        return new Parser(getPath(file), useAllPossibleHTTPMethodsForAttack);
+    }
+
+    private String getPath(String file) throws URISyntaxException {
+        return new File(getClass().getClassLoader().getResource(file).toURI()).getAbsolutePath();
     }
 
     @Test

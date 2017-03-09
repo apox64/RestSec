@@ -1,0 +1,5 @@
+package restsec;
+
+class Configuration {
+
+}

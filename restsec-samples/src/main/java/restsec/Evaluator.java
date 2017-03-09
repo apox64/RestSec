@@ -3,7 +3,7 @@ package restsec;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
-import org.apache.xpath.operations.Bool;
+import org.apache.log4j.Logger;
 
 import javax.json.Json;
 import javax.json.JsonBuilderFactory;
@@ -25,8 +25,9 @@ public class Evaluator {
      */
 
     private static int vulnerabilityCounter = 0;
+    private static final Logger logger = Logger.getLogger(Evaluator.class);
 
-    public static void evaluateLogfile() {
+    static void evaluateLogfile() {
 
         //JSONObject results = new JSONObject();
 
@@ -37,7 +38,7 @@ public class Evaluator {
         try {
             bufferedReader = new BufferedReader(new FileReader("src/main/resources/jetty-logs/jetty-"+ s +".request.log"));
         } catch (FileNotFoundException e) {
-            System.err.println("restsec.Evaluator: No log found.");
+            logger.warn("No log found.");
             System.exit(0);
         }
         String line;
@@ -46,7 +47,7 @@ public class Evaluator {
             if ((line = bufferedReader.readLine()) != null)
             {
                 if (line.contains("GET //0.0.0.0:5555/Cookie:")) {
-                    System.out.print("restsec.Evaluator: Success! XSS Payload executed and called back! Content: ");
+                    logger.info("Success! XSS Payload executed and called back! Content: ");
 
                     if (line.contains("token")) {
                         Pattern p = Pattern.compile("token=\\S*");
@@ -59,7 +60,7 @@ public class Evaluator {
                     }
                 }
             } else {
-                System.err.println("restsec.Evaluator: Jetty log is empty ... Target seems to be resistant against used payloads. (Did your browser connect via the proxy?)");
+                logger.warn("Jetty log is empty ... Target seems to be resistant against used payloads. (Did your browser connect via the proxy?)");
 
             }
 

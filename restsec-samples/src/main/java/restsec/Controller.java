@@ -1,5 +1,7 @@
 package restsec;
 
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +18,8 @@ class Controller {
     private static String sqliPayloadsFile = "";
     private static boolean allHTTPMethods = false;
     private static boolean deleteOldResultsFile = true;
+    private static final Logger logger = Logger.getLogger(Controller.class);
+
 
     private Controller() {
             loadProperties();
@@ -27,28 +31,28 @@ class Controller {
 
         if (deleteOldResultsFile) {
             Files.deleteIfExists(new File("src/main/resources/results/results.json").toPath());
-            System.out.println("restsec.Controller: results.json deleted.");
+            logger.info("results.json deleted.");
         }
 
         switch (documentationType.toLowerCase()) {
             case "swagger" :
-                System.out.println("restsec.Controller: Using Swagger Documentation : "+swaggerLocation+" (All HTTP Methods: "+allHTTPMethods+")");
+                logger.info("Using Swagger Documentation : "+swaggerLocation+" (All HTTP Methods: "+allHTTPMethods+")");
                 Thread parserSwagger = new Thread(new Parser(swaggerLocation, allHTTPMethods));
-                System.err.println(">>> restsec.Controller: Starting parser thread ... ");
+                logger.info("Starting parser thread ... ");
                 parserSwagger.start();
                 parserSwagger.join();
-                System.err.println(">>> restsec.Controller: restsec.Parser thread finished.");
+                logger.info("Parser thread finished.");
                 break;
             case "hateoas" :
-                System.out.println("restsec.Controller: Following HATEOAS links on : "+entryPointHATEOAS);
+                logger.info("Following HATEOAS links on : "+entryPointHATEOAS);
                 Thread parserHATEOAS = new Thread(new Parser(entryPointHATEOAS));
-                System.err.println(">>> restsec.Controller: Starting parser thread ... ");
+                logger.info("Starting parser thread ... ");
                 parserHATEOAS.start();
                 parserHATEOAS.join();
-                System.err.println(">>> restsec.Controller: restsec.Parser thread finished.");
+                logger.info("Parser thread finished.");
                 break;
             default:
-                System.err.println("Documentation Type not supported.");
+                logger.warn("Documentation Type not supported.");
                 System.exit(0);
                 break;
         }
@@ -76,17 +80,17 @@ class Controller {
                 }
                 break;
             default:
-                System.err.println("restsec.Controller: Did not recognize scan type in config.properties : XSS / SQLi / all");
+                logger.warn("Did not recognize scan type in config.properties : XSS / SQLi / all");
                 System.exit(0);
         }
 
         Evaluator.evaluateLogfile();
 
-        System.err.println(">>> RestSec terminated.");
+        logger.info("RestSec terminated.");
     }
 
     private void loadProperties() {
-        System.out.print("restsec.Controller: Loading properties ... ");
+        logger.info("Loading properties ... ");
         Properties properties = new Properties();
 
         try(InputStream stream = Scanner.class.getClassLoader().getResourceAsStream("config.properties")){

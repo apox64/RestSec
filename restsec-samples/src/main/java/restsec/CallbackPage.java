@@ -1,10 +1,17 @@
 package restsec;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.util.log.Slf4jLog;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.logging.LogType;
+import org.openqa.selenium.logging.LoggingPreferences;
+import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -13,7 +20,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.WARNING;
+import static org.apache.log4j.Level.WARN;
+import static org.eclipse.jetty.util.log.AbstractLogger.LEVEL_WARN;
 
 
 class CallbackPage {
@@ -23,6 +36,8 @@ class CallbackPage {
     private static final Server server = new Server(port);
     private static ChromeDriver chromeDriver;
     private static final boolean deleteOldLogs = true;
+
+    private static final Logger logger = Logger.getLogger(CallbackPage.class);
 
 //    private static Logger logger = Logger.getLogger(CallbackPage.class.getName());
 
@@ -35,8 +50,8 @@ class CallbackPage {
 //        Setting Jetty logger implementation and level (DEBUG | INFO | WARN | IGNORE)
 //        TODO: Reduce Jetty console Logging to warnings only (reduced terminal output)
 //        System.setProperty("org.eclipse.jetty.util.log.class", "org.eclipse.jetty.util.log.JavaUtilLog");
-        System.setProperty("org.eclipse.jetty.util.log.class.LEVEL", "WARN");
-
+        System.setProperty("org.eclipse.jetty.util.log.LEVEL", "WARN");
+        System.setProperty("org.eclipse.jetty.util.log.WARN","true");
 
         if (deleteOldLogs) {
             File directory = new File("src/main/resources/jetty-logs/");
@@ -63,7 +78,7 @@ class CallbackPage {
     void startTestPageServer() {
         try {
             server.start();
-            System.out.println("restsec.CallbackPage: Jetty Server started. Listening on " + port + " ... ");
+            logger.info("Jetty Server started. Listening on " + port + " ... ");
 //            logger.info("Jetty Server started on port "+port);
         } catch (Exception e) {
             e.printStackTrace();
@@ -73,7 +88,7 @@ class CallbackPage {
     void stopTestPageServer() {
         try {
             server.stop();
-            System.out.println("restsec.CallbackPage: Jetty Server stopped.");
+            logger.info("Jetty Server stopped.");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -93,44 +108,45 @@ class CallbackPage {
         }
         proxy.setHttpProxy(properties.getProperty("proxy_ip") + ":" + properties.getProperty("proxy_port"));
         capabilities.setCapability("proxy", proxy);
+
+        //silence webdriver
+        System.setProperty("webdriver.chrome.silentOutput", "true");
+        Logger.getLogger("org.openqa.selenium.remote.ProtocolHandshake").setLevel(Level.OFF);
+
         chromeDriver = new ChromeDriver(capabilities);
+
     }
 
     //this lets you actually execute the stored xss payload by reloading the page (with selenium webdriver)
-    boolean hasAlertOnReload(String url) {
+    boolean hasAlertOnReload(String url) throws TimeoutException {
         boolean hasAlert = false;
 
-        System.out.print("restsec.CallbackPage: Creating ChromeDriver ... ");
+        logger.info("Creating ChromeDriver ... ");
         setWebDriver();
-        System.out.print("restsec.CallbackPage: Getting URL: " + url + " ... ");
+        logger.info("Getting URL: " + url + " ... ");
         chromeDriver.manage().timeouts().pageLoadTimeout(3, TimeUnit.SECONDS);
-        chromeDriver.get(url);
+
+        try {
+            chromeDriver.get(url);
+        } catch (TimeoutException te) {
+            logger.warn("Target unreachable.");
+            chromeDriver.close();
+            System.exit(0);
+        }
 
         //click alert automatically, if there is one
         try {
-            System.out.print("restsec.CallbackPage: Waiting for alert ... ");
+            logger.info("Waiting for alert ... ");
             WebDriverWait wait = new WebDriverWait(chromeDriver, 1);
             wait.until(ExpectedConditions.alertIsPresent());
-            System.out.println("Alert found (payload worked!)");
+            logger.info("Alert found (payload worked!)");
             hasAlert = true;
             chromeDriver.switchTo().alert().accept();
         } catch (TimeoutException te) {
-            System.out.println("No alert found.");
+            logger.info("No alert found.");
         }
 
         //TODO: Refresh might actually not even be necessary (reopen on next test does the same)
-        /*
-        System.out.print("restsec.CallbackPage: Refreshing the page ... ");
-        chromeDriver.navigate().refresh();
-
-        try {
-            Thread.sleep(250);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("Done.");
-        */
 
         chromeDriver.close();
 

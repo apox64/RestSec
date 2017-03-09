@@ -2,6 +2,7 @@ package restsec;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -23,6 +24,7 @@ class Parser implements Runnable {
     private final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     private boolean useAllPossibleHTTPMethodsForAttack = false;
     private String whichParser = "";
+    private static final Logger logger = Logger.getLogger(Parser.class);
 
     Parser(String documentationFileSwagger, boolean useAllPossibleHTTPMethodsForAttack) {
         this.entryPointOrDocumentationFile = documentationFileSwagger;
@@ -60,9 +62,9 @@ class Parser implements Runnable {
             String basePath = (String) jsonObject.get("basePath");
             JSONObject pathsObj = (JSONObject) jsonObject.get("paths");
 
-            System.out.println("Swagger Version: \t" + version);
-            System.out.println("Host: \t\t\t\t" + host);
-            System.out.println("Basepath: \t\t\t" + basePath);
+            logger.info("Swagger Version: \t" + version);
+            logger.info("Host: \t\t\t\t" + host);
+            logger.info("Basepath: \t\t\t" + basePath);
 
             if (useAllHTTPMethods) {
                 writeAttackSetToFile(createCompleteHTTPMethodAttackSetJSON(pathsObj));
@@ -196,7 +198,7 @@ class Parser implements Runnable {
 
         while (it.hasNext()) {
             String currentPath = it.next();
-            System.out.println("restsec.Parser: Checking path: " + currentPath);
+            logger.info("Checking path: " + currentPath);
             JSONObject httpVerbsObject = (JSONObject) pathsObject.get(currentPath);
             JSONArray array = new JSONArray();
 
@@ -229,7 +231,7 @@ class Parser implements Runnable {
             }
 
         }
-        System.out.println("restsec.Parser: " + attackCounter + " possible attack points found.");
+        logger.info("" + attackCounter + " possible attack points found.");
         return attackSet;
     }
 
@@ -246,7 +248,7 @@ class Parser implements Runnable {
             attackSet.put(currentPath, array);
         }
 
-        System.out.println("restsec.Parser: attackSet created for bruteforcing (size: " + pathsObject.size() * 4 + ")");
+        logger.info("attackSet created for bruteforcing (size: " + pathsObject.size() * 4 + ")");
         return attackSet;
     }
 
@@ -267,7 +269,7 @@ class Parser implements Runnable {
             e.printStackTrace();
         }
 
-        System.out.println("restsec.Parser: AttackSet written to File.");
+        logger.info("AttackSet written to File.");
 
     }
 
