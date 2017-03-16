@@ -2,34 +2,23 @@ package restsec;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.log4j.Logger;
 
-import javax.json.Json;
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
 import java.io.*;
+import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Evaluator {
 
-    /*
-    evaluates the results
-        reads the jetty server logs
-        creates webpage (colors, etc.)
-     */
-
     private static int vulnerabilityCounter = 0;
     private static final Logger logger = Logger.getLogger(Evaluator.class);
 
-    static void evaluateLogfile() {
-
-        //JSONObject results = new JSONObject();
+    static void evaluateJettyLogfile() {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String s = sdf.format(new Date()).replace("-", "_");
@@ -46,7 +35,7 @@ public class Evaluator {
         try {
             if ((line = bufferedReader.readLine()) != null)
             {
-                if (line.contains("GET //0.0.0.0:5555/Cookie:")) {
+                if (line.contains("GET //" + InetAddress.getLocalHost().getHostAddress() + ":5555/Cookie:")) {
                     logger.info("Success! XSS Payload executed and called back! Content: ");
 
                     if (line.contains("token")) {
@@ -60,7 +49,7 @@ public class Evaluator {
                     }
                 }
             } else {
-                logger.warn("Jetty log is empty ... Target seems to be resistant against used payloads. (Did your browser connect via the proxy?)");
+                logger.warn("Jetty log is empty. Apparently no payload called back.");
 
             }
 
@@ -88,26 +77,21 @@ public class Evaluator {
 
         JsonParser parser = new JsonParser();
         Gson gsonBuilder = new GsonBuilder().setPrettyPrinting().create();
-        com.google.gson.JsonObject existingJsonObject = new com.google.gson.JsonObject();
+        JsonObject existingJsonObject = new JsonObject();
 
         //read existing (father object)
         try {
-            existingJsonObject = (com.google.gson.JsonObject) parser.parse(new FileReader("src/main/resources/results/results.json"));
+            existingJsonObject = (JsonObject) parser.parse(new FileReader("src/main/resources/results/results.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 
-        //create new (child object)
-        Map<String, Object> config = new HashMap<>();
-        config.put("javax.json.stream.JsonGenerator.prettyPrinting", Boolean.TRUE);
-        JsonBuilderFactory factory = Json.createBuilderFactory(config);
+        JsonObject newJsonObject = new JsonObject();
 
-        JsonObject newJsonObject = factory.createObjectBuilder()
-                .add("Vulnerability Type", vulnType)
-                .add("Endpoint", endpoint)
-                .add("Payload", payload)
-                .add("Comment", comment)
-                .build();
+        newJsonObject.addProperty("VulnType", vulnType);
+        newJsonObject.addProperty("Endpoint", endpoint);
+        newJsonObject.addProperty("Payload", payload);
+        newJsonObject.addProperty("Comment", comment);
 
         existingJsonObject.add(String.valueOf(vulnerabilityCounter), new Gson().toJsonTree(newJsonObject));
 

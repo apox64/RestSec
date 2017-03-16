@@ -2,16 +2,11 @@ package restsec;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.util.log.Slf4jLog;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.logging.LogType;
-import org.openqa.selenium.logging.LoggingPreferences;
-import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -19,37 +14,30 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static java.util.logging.Level.INFO;
-import static java.util.logging.Level.WARNING;
-import static org.apache.log4j.Level.WARN;
-import static org.eclipse.jetty.util.log.AbstractLogger.LEVEL_WARN;
 
 
 class CallbackPage {
 
-    //if you change the port, you have to change the payload value as well (otherwise payload won't call back
-    private static final int port = 5555;
-    private static final Server server = new Server(port);
+    private static int port;
+    private static Server server;
     private static ChromeDriver chromeDriver;
-    private static final boolean deleteOldLogs = true;
+
+    private static Configuration config;
 
     private static final Logger logger = Logger.getLogger(CallbackPage.class);
 
-//    private static Logger logger = Logger.getLogger(CallbackPage.class.getName());
-
     CallbackPage() {
-        configureJettyLogging(deleteOldLogs);
+        config = new Configuration();
+        port = config.getJettyCallbackPort();
+        server = new Server(port);
+        configureJettyLogging(config.getBoolDeleteOldJettyLogs());
     }
 
     private static void configureJettyLogging(boolean deleteOldLogs) {
 
-//        Setting Jetty logger implementation and level (DEBUG | INFO | WARN | IGNORE)
-//        TODO: Reduce Jetty console Logging to warnings only (reduced terminal output)
-//        System.setProperty("org.eclipse.jetty.util.log.class", "org.eclipse.jetty.util.log.JavaUtilLog");
         System.setProperty("org.eclipse.jetty.util.log.LEVEL", "WARN");
         System.setProperty("org.eclipse.jetty.util.log.WARN","true");
 
@@ -78,7 +66,8 @@ class CallbackPage {
     void startTestPageServer() {
         try {
             server.start();
-            logger.info("Jetty Server started. Listening on " + port + " ... ");
+            String localhost = InetAddress.getLocalHost().getHostAddress();
+            logger.info("Jetty Server started. Listening on " + localhost + ":" + port + " ... ");
 //            logger.info("Jetty Server started on port "+port);
         } catch (Exception e) {
             e.printStackTrace();
@@ -98,7 +87,7 @@ class CallbackPage {
         //Drivers for other OS can be downloaded here: https://sites.google.com/a/chromium.org/chromedriver/downloads
         System.setProperty("webdriver.chrome.driver", "C:\\Users\\DMD\\Development\\RestSec\\restsec-samples\\chromedriver-win32.exe");
         DesiredCapabilities capabilities = DesiredCapabilities.chrome();
-        Proxy proxy = new Proxy();
+
         Properties properties = new Properties();
         InputStream stream = Scanner.class.getClassLoader().getResourceAsStream("config.properties");
         try {
@@ -106,8 +95,13 @@ class CallbackPage {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        proxy.setHttpProxy(properties.getProperty("proxy_ip") + ":" + properties.getProperty("proxy_port"));
-        capabilities.setCapability("proxy", proxy);
+        logger.info("Use Proxy: "+config.getBoolUseProxy());
+        if (config.getBoolUseProxy()) {
+            Proxy proxy = new Proxy();
+            proxy.setHttpProxy(config.getProxyIP() + ":" + config.getProxyPort());
+            capabilities.setCapability("proxy", proxy);
+            logger.info("Using proxy: "+capabilities.getCapability("proxy"));
+        }
 
         //silence webdriver
         System.setProperty("webdriver.chrome.silentOutput", "true");

@@ -1,6 +1,4 @@
-package restsec;// restsec.Scanner needs input:
-// - Attack Set (from restsec.Parser, etc.)
-// - Payloads (from payloads/)
+package restsec;
 
 import io.restassured.http.ContentType;
 import org.apache.log4j.Logger;
@@ -9,32 +7,39 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import java.net.ConnectException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.concurrent.Future;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static io.restassured.RestAssured.given;
 
-class Scanner implements Runnable {
+class Scanner {
 
     private static final Logger logger = Logger.getLogger(Scanner.class);
 
+    private String attackSetFile = "";
     private JSONObject attackSet = new JSONObject();
+    private String payloadsFile = "";
     private JSONObject payloads = new JSONObject();
     private final CallbackPage callbackPage = new CallbackPage();
-    private String attackSetFile = "";
-    private String payloadsFile = "";
     private String scanFor = "";
+    private int numberOfSentPackets = 0;
+    private int acceptedPackets = 0;
+    private int rejectedPackets = 0;
 
-    private String baseURL = "http://127.0.0.1:80";
+    private static Configuration config;
 
     Scanner(String attackSetFile, String payloadsFile, String scanFor) {
         this.attackSetFile = attackSetFile;
         this.payloadsFile = payloadsFile;
         this.scanFor = scanFor;
+        config = new Configuration();
     }
 
-    public void run() {
+    public void scan() {
         JSONParser parser = new JSONParser();
         try{
             //noinspection ConstantConditions
@@ -46,16 +51,15 @@ class Scanner implements Runnable {
                 attackSetSize += httpMethods.size();
             }
 
-            logger.info(attackSet.size()+" attackable endpoints loaded from file: "+attackSetFile);
+            logger.info(attackSet.size()+" attackable endpoint(s) loaded from file: "+attackSetFile);
             //noinspection ConstantConditions
             payloads = (JSONObject) parser.parse(new FileReader(payloadsFile));
-            logger.info(payloads.size()+" payloads loaded from file: "+payloadsFile);
-            logger.info(attackSetSize*payloads.size()+" total attacks");
-            logger.info("Loading properties (baseURI, port, basePath, proxy ip, proxy port) ... ");
-            loadProperties();
+            logger.info(payloads.size()+" payload(s) loaded from file: "+payloadsFile);
+            logger.info("--> "+attackSetSize*payloads.size()+" total attacks");
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         switch (scanFor.toLowerCase()) {
             case "xss":
                 scanXSS();
@@ -72,76 +76,20 @@ class Scanner implements Runnable {
         }
     }
 
-    private void loadProperties() throws IOException {
-        Properties properties = new Properties();
-        try(InputStream stream = Scanner.class.getClassLoader().getResourceAsStream("config.properties")){
-            properties.load(stream);
-        }
-        this.baseURL = properties.getProperty("base-uri") + ":" + properties.getProperty("port") + properties.getProperty("base-path");
-    }
-
     private void scanXSS() {
         logger.info("Trying XSS payloads ...");
 
-        int numberOfSentPackets = 0;
-        int acceptedPackets = 0;
-        int rejectedPackets = 0;
-
-        //TODO: For-Verschachtelung auslagern in Methoden
-        //Where the executed payloads will call back to.
         callbackPage.startTestPageServer();
 
-        for (Object o : attackSet.keySet()) {
-
-            String resource = o.toString();
-
-            JSONArray httpVerbsArray = (JSONArray) attackSet.get(resource);
-
-            for (Object aHttpVerbsArray : httpVerbsArray) {
-                String httpVerb = (String) aHttpVerbsArray;
-
-                for (Object o1 : payloads.keySet()) {
-                    String payloadName = (String) o1;
-                    JSONObject payloadObject = (JSONObject) payloads.get(payloadName);
-
-                    // unescaping forward slashes for payload: replacing \/ with /
-                    String payload = payloadObject.toString().replace("\\/", "/");
-
-                    // Filtering endpoints with curly brackets (numbers) - Not supported yet.
-                    if (resource.contains("{")) {
-                        logger.info("Skipping " + resource + " (Curly bracket not yet implemented!");
-                    } else {
-                        logger.info("Trying " + httpVerb + " on " + resource + " (Payload: \"" + payloadName + "\") ... ");
-                        numberOfSentPackets++;
-                        try {
-                            forgeRequest(resource, httpVerb, payload, 200);
-                            //System.out.println("Accepted. (200 OK)");
-                            logger.info("Accepted.");
-                            acceptedPackets++;
-                            //callbackPage.reloadResource(baseURL+resource);
-                            if (callbackPage.hasAlertOnReload(baseURL)) {
-                                Evaluator.writeVulnerabilityToFile("XSS (alert)", resource, payload, "-");
-                            }
-
-                        } catch (AssertionError ae) {
-                            //System.err.println(" Rejected. (Server Status Code does not match expected Code)");
-                            logger.info("Rejected.");
-                            rejectedPackets++;
-                        }
-
-                    }
-
-                }
-
-            }
-
+        for (Object attackPoint : attackSet.keySet()) {
+            String endpoint = attackPoint.toString();
+            JSONArray httpVerbsArray = (JSONArray) attackSet.get(endpoint);
+            String host = config.getBaseURI()+":"+config.getPort();
+            tryVerbsForGivenURL(host+endpoint, httpVerbsArray);
         }
 
-        System.out.println("----------------------------\nrestsec.Scanner: Stats for XSS Scan:\n----------------------------\n" + numberOfSentPackets + " packets sent. ");
-        if (numberOfSentPackets != 0) {
-            System.out.println(acceptedPackets + " packets accepted. (" + (acceptedPackets * 100 / numberOfSentPackets) + "%).\n----------------------------");
-        }
-        System.out.println("----------------------------");
+        printPackageStatistics();
+
         callbackPage.stopTestPageServer();
 
     }
@@ -163,54 +111,121 @@ class Scanner implements Runnable {
         System.out.println("----------------------------");
     }
 
-    private void forgeRequest(String targetEndpoint, String httpMethod, String payload, int expectedResponseCode) {
-
-        switch (httpMethod) {
-            case "POST":
-                given().
-                        request().
-                        body(payload).
-                        contentType(ContentType.JSON).
-                        when().
-                        post(targetEndpoint).
-                        then().
-                        statusCode(expectedResponseCode);
-                break;
-            case "PATCH":
-                given().
-                        request().
-                        body(payload).
-                        contentType(ContentType.JSON).
-                        when().
-                        patch(targetEndpoint).
-                        then().
-                        statusCode(expectedResponseCode);
-                break;
-            case "PUT":
-                given().
-                        request().
-                        body(payload).
-                        contentType(ContentType.JSON).
-                        when().
-                        put(targetEndpoint).
-                        then().
-                        statusCode(expectedResponseCode);
-                break;
-            case "DELETE":
-                given().
-                        request().
-                        body(payload).
-                        contentType(ContentType.JSON).
-                        when().
-                        delete(targetEndpoint).
-                        then().
-                        statusCode(expectedResponseCode);
-                break;
-            default:
-                logger.warn("Unknown HTTP method.");
-
+    private void tryVerbsForGivenURL(String url, JSONArray httpVerbsArray) {
+        for (Object httpVerbsObject : httpVerbsArray) {
+            String httpVerb = (String) httpVerbsObject;
+            tryAllPayloadsForGivenVerb(url, httpVerb);
         }
+    }
 
+    private void tryAllPayloadsForGivenVerb(String url, String httpVerb) {
+
+        for (Object payloadObject : payloads.keySet()) {
+            String payloadID = (String) payloadObject;
+
+            // unescaping forward slashes for payload: replacing \/ with /
+            String payload = payloads.get(payloadID).toString().replace("\\/","/");
+
+            // Filtering endpoints with curly brackets (numbers) - Not supported yet.
+            if (url.contains("{")) {
+                logger.info("Skipping " + url + " (Curly bracket not yet implemented!");
+            } else {
+                logger.info("Trying " + httpVerb + " on " + url + " (Payload: \"" + payloadID + "\") ... ");
+                numberOfSentPackets++;
+                try {
+                    payload = updatePayloadWithCallbackValues(payload);
+                    sendPacket(url, httpVerb, payload);
+                    logger.info("Accepted.");
+                    acceptedPackets++;
+                    if (callbackPage.hasAlertOnReload(config.getBaseURI()+":"+config.getPort()+"/")) {
+                        Evaluator.writeVulnerabilityToFile("XSS (alert)", url, payload, "-");
+                    }
+                } catch (AssertionError ae) {
+                    logger.info("Rejected. (Server Status Code does not match expected Code)");
+                    rejectedPackets++;
+                } catch (ConnectException ce) {
+                    if (config.getBoolUseProxy()) {
+                        logger.fatal("Connection timed out. Proxy and Target reachable?");
+                    } else {
+                        logger.fatal("Connection timed out. Target reachable?");
+                    }
+                    System.exit(0);
+                }
+            }
+        }
+    }
+
+    private void sendPacket(String url, String httpMethod, String payload) throws ConnectException {
+
+            int expectedResponseCode = 200;
+
+            switch (httpMethod) {
+                case "POST":
+                    given().
+                            request().
+                            body(payload).
+                            contentType(ContentType.JSON).
+                            when().
+                            post(url).
+                            then().
+                            statusCode(expectedResponseCode);
+                    break;
+                case "PATCH":
+                    given().
+                            request().
+                            body(payload).
+                            contentType(ContentType.JSON).
+                            when().
+                            patch(url).
+                            then().
+                            statusCode(expectedResponseCode);
+                    break;
+                case "PUT":
+                    given().
+                            request().
+                            body(payload).
+                            contentType(ContentType.JSON).
+                            when().
+                            put(url).
+                            then().
+                            statusCode(expectedResponseCode);
+                    break;
+                case "DELETE":
+                    given().
+                            request().
+                            body(payload).
+                            contentType(ContentType.JSON).
+                            when().
+                            delete(url).
+                            then().
+                            statusCode(expectedResponseCode);
+                    break;
+                default:
+                    logger.warn("Requested HTTP method not implemented.");
+            }
+    }
+
+    private void printPackageStatistics() {
+        System.out.println("----------------------------\nrestsec.Scanner: Stats for XSS Scan:\n----------------------------\n" + numberOfSentPackets + " packets sent. ");
+        if (numberOfSentPackets != 0) {
+            System.out.println(acceptedPackets + " packets accepted. (" + (acceptedPackets * 100 / numberOfSentPackets) + "%).\n----------------------------");
+        }
+        System.out.println("----------------------------");
+    }
+
+    private String updatePayloadWithCallbackValues(String payload){
+        String regex = "script.*(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):(\\d*).*script";
+        Pattern p = Pattern.compile(regex);
+        Matcher matcher = p.matcher(payload);
+        while (matcher.find()) {
+            try {
+                payload = payload.replace(matcher.group(1), String.valueOf(InetAddress.getLocalHost().getHostAddress()));
+            } catch (UnknownHostException uhe) {
+                uhe.printStackTrace();
+            }
+            payload = payload.replace(matcher.group(2), String.valueOf(config.getJettyCallbackPort()));
+        }
+        return payload;
     }
 
 }

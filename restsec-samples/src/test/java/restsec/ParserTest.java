@@ -2,6 +2,10 @@ package restsec;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.*;
+import restsec.crawler.Crawler;
+import restsec.crawler.CrawlerFactory;
+import restsec.crawler.HATEOASCrawler;
+import restsec.crawler.SwaggerParser;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,16 +24,10 @@ class ParserTest {
     }
 
     @Test
-    @DisplayName("HATEOAS Parser for spring-hateoas-demo")
+    @DisplayName("HATEOAS Crawler for spring-hateoas-demo")
     void parserHATEOASSpringDemo() {
-        Thread parserThread = new Thread(new restsec.Parser("http://localhost:10001/albums/"));
-        parserThread.start();
-
-        try {
-            parserThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        HATEOASCrawler hateoasCrawler = new HATEOASCrawler("http://localhost:10001/albums/");
+        hateoasCrawler.crawl();
 
         JsonObject attackSetFromFile = new JsonObject();
 
@@ -46,18 +44,11 @@ class ParserTest {
     }
 
     @Test
-    @DisplayName("Swagger Parser for swagger-juiceshop-short.json, not all HTTP methods")
+    @DisplayName("Swagger Crawler for swagger-juiceshop-short.json, not all HTTP methods")
     void parserSwaggerJuiceShopShortNotAllHTTPMethods() throws URISyntaxException {
-
-        String file = "docs_swagger/swagger-juiceshop-short.json";
-        Parser parser = createParserForFile(file, false);
-        Thread parserThread = createAndStartThread(parser);
-
-        try {
-            parserThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        String file = "src/main/resources/docs_swagger/swagger-juiceshop-short.json";
+        SwaggerParser swaggerParser = new SwaggerParser(file, false);
+        swaggerParser.crawl();
 
         JsonObject attackSetFromFile = new JsonObject();
 
@@ -71,31 +62,11 @@ class ParserTest {
         Assertions.assertTrue(attackSetFromFile.get("/api/Products/1").toString().equals("[\"PUT\"]"));
     }
 
-    private Thread createAndStartThread(Parser parser) {
-        Thread parserThread = new Thread(parser);
-        parserThread.start();
-        return parserThread;
-    }
-
-    private Parser createParserForFile(String file, boolean useAllPossibleHTTPMethodsForAttack) throws URISyntaxException {
-        return new Parser(getPath(file), useAllPossibleHTTPMethodsForAttack);
-    }
-
-    private String getPath(String file) throws URISyntaxException {
-        return new File(getClass().getClassLoader().getResource(file).toURI()).getAbsolutePath();
-    }
-
     @Test
-    @DisplayName("Swagger Parser for swagger-juiceshop-short.json, with all HTTP methods")
+    @DisplayName("Swagger Crawler for swagger-juiceshop-short.json, with all HTTP methods")
     void parserSwaggerJuiceShopShortWithAllHTTPMethods() {
-        Thread parserThread = new Thread(new restsec.Parser("src/main/resources/docs_swagger/swagger-juiceshop-short.json", true));
-        parserThread.start();
-
-        try {
-            parserThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        SwaggerParser swaggerParser = new SwaggerParser("src/main/resources/docs_swagger/swagger-juiceshop-short.json", true);
+        swaggerParser.crawl();
 
         JsonObject attackSetFromFile = new JsonObject();
 
@@ -110,17 +81,10 @@ class ParserTest {
     }
 
     @Test
-    @DisplayName("Swagger Parser for swagger-juiceshop.json, not all HTTP methods")
+    @DisplayName("Swagger Crawler for swagger-juiceshop.json, not all HTTP methods")
     void parserSwaggerJuiceShopFullNotAllHTTPMethods() {
-
-        Thread parserThread = new Thread(new restsec.Parser("src/main/resources/docs_swagger/swagger-juiceshop.json", false));
-        parserThread.start();
-
-        try {
-            parserThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        SwaggerParser swaggerParser = new SwaggerParser("src/main/resources/docs_swagger/swagger-juiceshop.json", false);
+        swaggerParser.crawl();
 
         JsonObject attackSetFromFile = new JsonObject();
 
@@ -137,16 +101,10 @@ class ParserTest {
     }
 
     @Test
-    @DisplayName("Swagger Parser for swagger-juiceshop.json, with all HTTP methods")
+    @DisplayName("Swagger Crawler for swagger-juiceshop.json, with all HTTP methods")
     void parserSwaggerJuiceShopFullWithAllHTTPMethods() {
-        Thread parserThread = new Thread(new restsec.Parser("src/main/resources/docs_swagger/swagger-juiceshop.json", true));
-        parserThread.start();
-
-        try {
-            parserThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        SwaggerParser swaggerParser = new SwaggerParser("src/main/resources/docs_swagger/swagger-juiceshop.json", true);
+        swaggerParser.crawl();
 
         JsonObject attackSetFromFile = new JsonObject();
 
@@ -163,16 +121,10 @@ class ParserTest {
     }
 
     @Test
-    @DisplayName("Swagger Parser for instagram-api-test.json, not all HTTP methods")
+    @DisplayName("Swagger Crawler for instagram-api-test.json, not all HTTP methods")
     void parserSwaggerInstagramAPINotAllHTTPMethods() {
-        Thread parserThread = new Thread(new restsec.Parser("src/main/resources/docs_swagger/swagger-instagram-api-test.json", false));
-        parserThread.start();
-
-        try {
-            parserThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        SwaggerParser swaggerParser = new SwaggerParser("src/main/resources/docs_swagger/swagger-instagram-api-test.json", false);
+        swaggerParser.crawl();
 
         JsonObject attackSetFromFile = new JsonObject();
 

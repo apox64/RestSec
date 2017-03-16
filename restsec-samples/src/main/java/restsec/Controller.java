@@ -1,113 +1,96 @@
 package restsec;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import restsec.crawler.Crawler;
+import restsec.crawler.CrawlerFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.Properties;
 
 class Controller {
 
-    private static String entryPointHATEOAS = "";
-    private static String swaggerLocation = "";
-    private static String documentationType = "";
-    private static String scanForVulnerabilityTypes = "all";
-    private static String xssPayloadsFile = "";
-    private static String sqliPayloadsFile = "";
-    private static boolean allHTTPMethods = false;
-    private static boolean deleteOldResultsFile = true;
-    private static final Logger logger = Logger.getLogger(Controller.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Controller.class);
 
+    private static Configuration config;
 
     private Controller() {
-            loadProperties();
     }
 
-    public static void main (String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
-        new Controller();
+        CrawlerFactory crawlerFactory = new CrawlerFactory(new Configuration());
+        Crawler crawler = crawlerFactory.createCrawler();
+        crawler.crawl();
 
-        if (deleteOldResultsFile) {
+        /*
+        new CallbackPage()
+
+        Scanner scanner = new Scanner();
+
+        AttackSet attackSet = crawler.crawl(target);
+        scanner.scan(target, attackSet);
+        */
+
+//      new Controller();
+
+        //TODO : Currently exiting here, so you don't have to stop the programm everytime
+        Thread.sleep(2000);
+        System.exit(0);
+
+        config = new Configuration();
+
+        if (config.getBoolDeleteOldResultsFile()) {
             Files.deleteIfExists(new File("src/main/resources/results/results.json").toPath());
-            logger.info("results.json deleted.");
+            LOGGER.info("results.json deleted.");
         }
 
-        switch (documentationType.toLowerCase()) {
+        /*
+        //Start a Crawler
+        switch (config.getDocumentationType().toLowerCase()) {
             case "swagger" :
-                logger.info("Using Swagger Documentation : "+swaggerLocation+" (All HTTP Methods: "+allHTTPMethods+")");
-                Thread parserSwagger = new Thread(new Parser(swaggerLocation, allHTTPMethods));
-                logger.info("Starting parser thread ... ");
-                parserSwagger.start();
-                parserSwagger.join();
-                logger.info("Parser thread finished.");
+                LOGGER.info("Using Swagger Documentation : "+config.getSwaggerFileLocation()+" (All HTTP Methods: "+config.getBoolUseAllHTTPMethods()+")");
+                new Crawler(config.getSwaggerFileLocation(), config.getBoolUseAllHTTPMethods());
                 break;
             case "hateoas" :
-                logger.info("Following HATEOAS links on : "+entryPointHATEOAS);
-                Thread parserHATEOAS = new Thread(new Parser(entryPointHATEOAS));
-                logger.info("Starting parser thread ... ");
-                parserHATEOAS.start();
-                parserHATEOAS.join();
-                logger.info("Parser thread finished.");
+                LOGGER.info("Following HATEOAS links on : "+config.getHATEOASEntryPoint());
+                new Crawler(config.getHATEOASEntryPoint());
+                LOGGER.info("Starting parser thread ... ");
+                LOGGER.info("Crawler thread finished.");
                 break;
             default:
-                logger.warn("Documentation Type not supported.");
+                LOGGER.warn("Documentation Type not supported.");
                 System.exit(0);
                 break;
         }
+        */
 
-        //Starting a restsec.Scanner
-        switch (scanForVulnerabilityTypes.toLowerCase()) {
+        //Starting a Scanner
+        switch (config.getVulnerabilityScanType().toLowerCase()) {
             case "xss":
-                Thread scannerXSS = new Thread(new Scanner("src/main/resources/attackable/attackset.json", xssPayloadsFile, "xss"));
-                scannerXSS.start();
-                scannerXSS.join();
+                new Scanner("src/main/resources/attackable/attackset.json", config.getXSSPayloadsFileLocation(), "xss").scan();
                 break;
             case "sqli":
-                Thread scannerSQLi = new Thread(new Scanner("src/main/resources/attackable/attackset.json", sqliPayloadsFile, "sqli"));
-                scannerSQLi.start();
-                scannerSQLi.join();
+                new Scanner("src/main/resources/attackable/attackset.json", config.getSQLiPayloadsFileLocation(), "sqli");
                 break;
             case "all":
                 //Loop over all payload files in "payloads" folder.
                 final File folder = new File("src/main/resources/payloads/");
                 //noinspection ConstantConditions
                 for (final File fileEntry : folder.listFiles()) {
-                    Thread scanner = new Thread(new Scanner("src/main/resources/attackable/attackset.json", "src/main/resources/payloads/"+fileEntry.getName(), "all"));
-                    scanner.start();
-                    scanner.join();
+                    new Scanner("src/main/resources/attackable/attackset.json", "src/main/resources/payloads/" + fileEntry.getName(), "all");
                 }
                 break;
             default:
-                logger.warn("Did not recognize scan type in config.properties : XSS / SQLi / all");
+                LOGGER.warn("Did not recognize scan type in config.properties : XSS / SQLi / all");
                 System.exit(0);
         }
 
-        Evaluator.evaluateLogfile();
+        //Evaluate the Jetty Logfile
+        Evaluator.evaluateJettyLogfile();
 
-        logger.info("RestSec terminated.");
-    }
-
-    private void loadProperties() {
-        logger.info("Loading properties ... ");
-        Properties properties = new Properties();
-
-        try(InputStream stream = Scanner.class.getClassLoader().getResourceAsStream("config.properties")){
-            properties.load(stream);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-
-        documentationType = properties.getProperty("documentationType");
-        entryPointHATEOAS = properties.getProperty("entryPointHATEOAS");
-        swaggerLocation = properties.getProperty("swaggerLocation");
-        allHTTPMethods = Boolean.parseBoolean(properties.getProperty("allHTTPMethods"));
-        scanForVulnerabilityTypes = properties.getProperty("scanForVulnerabilityTypes");
-        xssPayloadsFile = properties.getProperty("xssPayloadsFile");
-        sqliPayloadsFile = properties.getProperty("sqliPayloadsFile");
-        deleteOldResultsFile = Boolean.parseBoolean(properties.getProperty("deleteOldResultsFile"));
-
+        LOGGER.info("RestSec terminated.");
+        System.exit(0);
     }
 
 }

