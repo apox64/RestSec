@@ -5,22 +5,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import restsec.AttackSet;
 
 import java.io.FileReader;
 import java.util.Iterator;
 
-public class SwaggerParser extends Crawler {
+public class SwaggerFileCrawler implements Crawler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SwaggerParser.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SwaggerFileCrawler.class);
 
     private String swaggerFileLocation;
     private Boolean useAllHTTPMethods;
 
-    public SwaggerParser(String swaggerFileLocation, Boolean useAllHTTPMethods) {
+    public SwaggerFileCrawler(String swaggerFileLocation, Boolean useAllHTTPMethods) {
         this.swaggerFileLocation = swaggerFileLocation;
         this.useAllHTTPMethods = useAllHTTPMethods;
     }
 
+    @Override
     public void crawl(){
         LOGGER.info("Parsing Swagger File from : "+swaggerFileLocation);
         parseSwaggerJSON(swaggerFileLocation, useAllHTTPMethods);
@@ -33,18 +35,22 @@ public class SwaggerParser extends Crawler {
             JSONObject jsonObject = (JSONObject) jsonParser.parse(new FileReader(swaggerFile));
 
             String version = (String) jsonObject.get("swagger");
-            String host = (String) jsonObject.get("host");
-            String basePath = (String) jsonObject.get("basePath");
-            JSONObject pathsObj = (JSONObject) jsonObject.get("paths");
-
             LOGGER.info("Swagger Version: \t" + version);
+            String host = (String) jsonObject.get("host");
             LOGGER.info("Host: \t\t\t\t" + host);
+            String basePath = (String) jsonObject.get("basePath");
             LOGGER.info("Basepath: \t\t\t" + basePath);
+            JSONObject pathsObj = (JSONObject) jsonObject.get("paths");
+            LOGGER.info("Paths: \t\t\t" + pathsObj.size() + " paths found.");
+
+            AttackSet attackSet = new AttackSet();
 
             if (useAllHTTPMethods) {
-                super.writeAttackSetToFile(super.createCompleteHTTPMethodAttackSetJSON(pathsObj));
+                attackSet.setAttackSet(new AttackSet().createFullAttackSetForPathsObject(pathsObj));
+                attackSet.writeAttackSetToFile(attackSet);
             } else {
-                super.writeAttackSetToFile(createAttackSetJSONSwagger(pathsObj));
+                attackSet.setAttackSet(findAttackableEndpoints(pathsObj));
+                attackSet.writeAttackSetToFile(attackSet);
             }
 
         } catch (Exception e) {
@@ -53,7 +59,7 @@ public class SwaggerParser extends Crawler {
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject createAttackSetJSONSwagger(JSONObject pathsObject) {
+    private JSONObject findAttackableEndpoints(JSONObject pathsObject) {
         Iterator<String> it = pathsObject.keySet().iterator();
         JSONObject attackSet = new JSONObject();
         int attackCounter = 0;
@@ -93,7 +99,7 @@ public class SwaggerParser extends Crawler {
             }
 
         }
-        LOGGER.info("" + attackCounter + " possible attack points found.");
+        LOGGER.info("" + attackCounter + " attackable endpoints found.");
         return attackSet;
     }
 

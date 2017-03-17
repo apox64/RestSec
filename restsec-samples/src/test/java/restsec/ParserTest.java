@@ -2,12 +2,9 @@ package restsec;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.*;
-import restsec.crawler.Crawler;
-import restsec.crawler.CrawlerFactory;
 import restsec.crawler.HATEOASCrawler;
-import restsec.crawler.SwaggerParser;
+import restsec.crawler.SwaggerFileCrawler;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.net.URISyntaxException;
@@ -47,8 +44,8 @@ class ParserTest {
     @DisplayName("Swagger Crawler for swagger-juiceshop-short.json, not all HTTP methods")
     void parserSwaggerJuiceShopShortNotAllHTTPMethods() throws URISyntaxException {
         String file = "src/main/resources/docs_swagger/swagger-juiceshop-short.json";
-        SwaggerParser swaggerParser = new SwaggerParser(file, false);
-        swaggerParser.crawl();
+        SwaggerFileCrawler swaggerFileCrawler = new SwaggerFileCrawler(file, false);
+        swaggerFileCrawler.crawl();
 
         JsonObject attackSetFromFile = new JsonObject();
 
@@ -65,8 +62,8 @@ class ParserTest {
     @Test
     @DisplayName("Swagger Crawler for swagger-juiceshop-short.json, with all HTTP methods")
     void parserSwaggerJuiceShopShortWithAllHTTPMethods() {
-        SwaggerParser swaggerParser = new SwaggerParser("src/main/resources/docs_swagger/swagger-juiceshop-short.json", true);
-        swaggerParser.crawl();
+        SwaggerFileCrawler swaggerFileCrawler = new SwaggerFileCrawler("src/main/resources/docs_swagger/swagger-juiceshop-short.json", true);
+        swaggerFileCrawler.crawl();
 
         JsonObject attackSetFromFile = new JsonObject();
 
@@ -83,8 +80,8 @@ class ParserTest {
     @Test
     @DisplayName("Swagger Crawler for swagger-juiceshop.json, not all HTTP methods")
     void parserSwaggerJuiceShopFullNotAllHTTPMethods() {
-        SwaggerParser swaggerParser = new SwaggerParser("src/main/resources/docs_swagger/swagger-juiceshop.json", false);
-        swaggerParser.crawl();
+        SwaggerFileCrawler swaggerFileCrawler = new SwaggerFileCrawler("src/main/resources/docs_swagger/swagger-juiceshop.json", false);
+        swaggerFileCrawler.crawl();
 
         JsonObject attackSetFromFile = new JsonObject();
 
@@ -103,8 +100,8 @@ class ParserTest {
     @Test
     @DisplayName("Swagger Crawler for swagger-juiceshop.json, with all HTTP methods")
     void parserSwaggerJuiceShopFullWithAllHTTPMethods() {
-        SwaggerParser swaggerParser = new SwaggerParser("src/main/resources/docs_swagger/swagger-juiceshop.json", true);
-        swaggerParser.crawl();
+        SwaggerFileCrawler swaggerFileCrawler = new SwaggerFileCrawler("src/main/resources/docs_swagger/swagger-juiceshop.json", true);
+        swaggerFileCrawler.crawl();
 
         JsonObject attackSetFromFile = new JsonObject();
 
@@ -123,8 +120,8 @@ class ParserTest {
     @Test
     @DisplayName("Swagger Crawler for instagram-api-test.json, not all HTTP methods")
     void parserSwaggerInstagramAPINotAllHTTPMethods() {
-        SwaggerParser swaggerParser = new SwaggerParser("src/main/resources/docs_swagger/swagger-instagram-api-test.json", false);
-        swaggerParser.crawl();
+        SwaggerFileCrawler swaggerFileCrawler = new SwaggerFileCrawler("src/main/resources/docs_swagger/swagger-instagram-api-test.json", false);
+        swaggerFileCrawler.crawl();
 
         JsonObject attackSetFromFile = new JsonObject();
 

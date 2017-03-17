@@ -1,7 +1,7 @@
 package restsec;
 
-import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import org.junit.jupiter.api.*;
+import restsec.config.Configuration;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

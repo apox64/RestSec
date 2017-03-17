@@ -1,3 +1,6 @@
 {
-  "/api/Products/1" : [ "PUT" ]
+  "attackSet" : {
+    "/api/Products/1" : [ "PUT" ]
+  },
+  "attackSetFileName" : "src/main/resources/attackable/attackset.json"
 }

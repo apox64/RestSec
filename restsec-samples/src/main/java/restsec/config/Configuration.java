@@ -1,4 +1,4 @@
-package restsec;
+package restsec.config;
 
 // TODO: reads the config file, offers getMethods that return all values
 
@@ -10,16 +10,23 @@ import java.util.Properties;
 
 public class Configuration {
 
+    //TODO: Guice = Google Dependency Injection Framework
+    //TODO: Config validate, throwing Exceptions
+    //TODO: Switch-case on CrawlerType.valueOf()
+
     private static final Logger logger = Logger.getLogger(Configuration.class);
     private Properties properties;
+
+    //TODO: HashMap properties;
 
     public Configuration() {
         loadProperties();
     }
 
     private void loadProperties() {
+        //TODO: check all properties from file ONCE, put to HashMap (e.g. CrawlerType)
         this.properties = new Properties();
-        try(InputStream inputStream = Scanner.class.getClassLoader().getResourceAsStream("config.properties")){
+        try(InputStream inputStream = Configuration.class.getClassLoader().getResourceAsStream("config.properties")){
             properties.load(inputStream);
         } catch (IOException ioe) {
             logger.warn("Properties could not be loaded.");
@@ -60,8 +67,9 @@ public class Configuration {
         return properties.getProperty("password");
     }
 
-    public String getDocumentationType(){
-        return properties.getProperty("documentationType");
+    public String getCrawlerType(){
+        // TODO: public CrawlerType getCrawlerType()
+        return properties.getProperty("crawlerType");
     }
 
     public String getHATEOASEntryPoint(){
@@ -70,6 +78,10 @@ public class Configuration {
 
     public String getSwaggerFileLocation(){
         return properties.getProperty("swaggerLocation");
+    }
+
+    public String getAttackSetFileLocation() {
+        return properties.getProperty("attackSetFileLocation");
     }
 
     public String getXSSPayloadsFileLocation(){

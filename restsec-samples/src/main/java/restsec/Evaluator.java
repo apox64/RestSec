@@ -5,9 +5,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.log4j.Logger;
+import restsec.config.Configuration;
 
 import java.io.*;
 import java.net.InetAddress;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -16,9 +18,24 @@ import java.util.regex.Pattern;
 public class Evaluator {
 
     private static int vulnerabilityCounter = 0;
-    private static final Logger logger = Logger.getLogger(Evaluator.class);
+    private static final Logger LOGGER = Logger.getLogger(Evaluator.class);
+
+    public static void deleteOldLogFile() {
+
+        if (new Configuration().getBoolDeleteOldResultsFile()) {
+            try {
+                Files.deleteIfExists(new File("src/main/resources/results/results.json").toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            LOGGER.info("results.json deleted.");
+        }
+
+    }
 
     static void evaluateJettyLogfile() {
+
+        deleteOldLogFile();
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String s = sdf.format(new Date()).replace("-", "_");
@@ -27,7 +44,7 @@ public class Evaluator {
         try {
             bufferedReader = new BufferedReader(new FileReader("src/main/resources/jetty-logs/jetty-"+ s +".request.log"));
         } catch (FileNotFoundException e) {
-            logger.warn("No log found.");
+            LOGGER.warn("No log found.");
             System.exit(0);
         }
         String line;
@@ -36,7 +53,7 @@ public class Evaluator {
             if ((line = bufferedReader.readLine()) != null)
             {
                 if (line.contains("GET //" + InetAddress.getLocalHost().getHostAddress() + ":5555/Cookie:")) {
-                    logger.info("Success! XSS Payload executed and called back! Content: ");
+                    LOGGER.info("Success! XSS Payload executed and called back! Content: ");
 
                     if (line.contains("token")) {
                         Pattern p = Pattern.compile("token=\\S*");
@@ -49,7 +66,7 @@ public class Evaluator {
                     }
                 }
             } else {
-                logger.warn("Jetty log is empty. Apparently no payload called back.");
+                LOGGER.warn("Jetty log is empty. Apparently no payload called back.");
 
             }
 

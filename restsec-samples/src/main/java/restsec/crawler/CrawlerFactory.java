@@ -1,6 +1,7 @@
 package restsec.crawler;
 
-import restsec.Configuration;
+import restsec.config.Configuration;
+import restsec.config.CrawlerType;
 
 public class CrawlerFactory {
 
@@ -12,16 +13,17 @@ public class CrawlerFactory {
 
     public Crawler createCrawler() {
 
-        String crawlerType = config.getDocumentationType();
+//      CrawlerType crawlerType = config.getCrawlerType();
+        CrawlerType crawlerType = null;
 
-        if (crawlerType == null) {
-            return null;
-        } else if (crawlerType.toUpperCase().equals("HATEOAS")) {
-            return new HATEOASCrawler(config.getHATEOASEntryPoint());
-        } else if (crawlerType.toUpperCase().equals("SWAGGER")) {
-            return new SwaggerParser(config.getSwaggerFileLocation(), config.getBoolUseAllHTTPMethods());
+        //TODO: Inline config.get...();
+        switch (crawlerType) {
+            case HATEOAS:
+                return new HATEOASCrawler(config.getHATEOASEntryPoint());
+            case SWAGGER:
+                return new SwaggerFileCrawler(config.getSwaggerFileLocation(), config.getBoolUseAllHTTPMethods());
+            default:
+                throw new IllegalStateException("Unknown Crawler Type");
         }
-
-        return null;
     }
 }

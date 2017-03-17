@@ -10,6 +10,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import restsec.config.Configuration;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +20,7 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 
-class CallbackPage {
+public class CallbackPage {
 
     private static int port;
     private static Server server;
@@ -29,7 +30,7 @@ class CallbackPage {
 
     private static final Logger logger = Logger.getLogger(CallbackPage.class);
 
-    CallbackPage() {
+    public CallbackPage() {
         config = new Configuration();
         port = config.getJettyCallbackPort();
         server = new Server(port);
@@ -63,18 +64,17 @@ class CallbackPage {
 
     }
 
-    void startTestPageServer() {
+    public void startTestPageServer() {
         try {
             server.start();
             String localhost = InetAddress.getLocalHost().getHostAddress();
             logger.info("Jetty Server started. Listening on " + localhost + ":" + port + " ... ");
-//            logger.info("Jetty Server started on port "+port);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    void stopTestPageServer() {
+    public void stopTestPageServer() {
         try {
             server.stop();
             logger.info("Jetty Server stopped.");
@@ -89,7 +89,7 @@ class CallbackPage {
         DesiredCapabilities capabilities = DesiredCapabilities.chrome();
 
         Properties properties = new Properties();
-        InputStream stream = Scanner.class.getClassLoader().getResourceAsStream("config.properties");
+        InputStream stream = CallbackPage.class.getClassLoader().getResourceAsStream("config.properties");
         try {
             properties.load(stream);
         } catch (IOException e) {
@@ -112,7 +112,7 @@ class CallbackPage {
     }
 
     //this lets you actually execute the stored xss payload by reloading the page (with selenium webdriver)
-    boolean hasAlertOnReload(String url) throws TimeoutException {
+    public boolean hasAlertOnReload(String url) throws TimeoutException {
         boolean hasAlert = false;
 
         logger.info("Creating ChromeDriver ... ");
