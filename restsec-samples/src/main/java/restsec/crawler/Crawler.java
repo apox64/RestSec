@@ -1,9 +1,11 @@
 package restsec.crawler;
 
+import restsec.AttackSet;
+
 public interface Crawler {
 
-    //TODO: Return JSONObject attackSet
-
     void crawl();
+
+    AttackSet crawl(String target);
 
 }

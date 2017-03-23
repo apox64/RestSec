@@ -12,31 +12,34 @@ class Controller {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Controller.class);
 
-    private Controller() {
-    }
-
     public static void main(String[] args) throws Exception {
 
-        CrawlerFactory crawlerFactory = new CrawlerFactory(new Configuration());
+        Configuration config = new Configuration();
+
+        CrawlerFactory crawlerFactory = new CrawlerFactory(config);
         Crawler crawler = crawlerFactory.createCrawler();
-        crawler.crawl();
+        AttackSet attackSet = crawler.crawl(config.getTargetURLAsString());
+
+        //TODO: Who offers the method "writeAttackSetToFile"?
+        new AttackSet().writeAttackSetToFile(attackSet, config.getAttackSetFileLocation());
 
         /*
-        new CallbackPage()
+        new CallbackServer()
 
         AttackSet attackSet = crawler.crawl(target);
         scanner.scan(target, attackSet);
         */
 
         //TODO : Currently exiting here, so you don't have to stop the programm everytime
-//        Thread.sleep(2000);
-//        System.exit(0);
 
-        ScannerFactory scannerFactory = new ScannerFactory(new Configuration());
+        ScannerFactory scannerFactory = new ScannerFactory(config);
         Scanner scanner = scannerFactory.createScanner();
         scanner.scan();
 
-        Evaluator.evaluateJettyLogfile();
+//        System.exit(0);
+
+        Evaluator evaluator = new Evaluator(config);
+        evaluator.evaluateJettyLogfile();
 
         LOGGER.info("RestSec terminated.");
         System.exit(0);

@@ -6,7 +6,14 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Properties;
+
+import static restsec.config.CrawlerType.HATEOAS;
+import static restsec.config.CrawlerType.SWAGGER;
+import static restsec.config.ScannerType.SQLI;
+import static restsec.config.ScannerType.XSS;
 
 public class Configuration {
 
@@ -33,6 +40,10 @@ public class Configuration {
             ioe.printStackTrace();
         }
         logger.info(Integer.toString(properties.size()) + " properties loaded.");
+    }
+
+    public String getTargetURLAsString() {
+        return getBaseURI()+":"+getPort()+getBasePath();
     }
 
     public String getBaseURI(){
@@ -67,9 +78,46 @@ public class Configuration {
         return properties.getProperty("password");
     }
 
-    public String getCrawlerType(){
-        // TODO: public CrawlerType getCrawlerType()
-        return properties.getProperty("crawlerType");
+    public String getCookie() {
+        return properties.getProperty("cookie");
+    }
+
+    public CrawlerType getCrawlerType() {
+        switch (String.valueOf(properties.getProperty("crawlerType").toUpperCase())) {
+            case "HATEOAS":
+                return HATEOAS;
+            case "SWAGGER":
+                return SWAGGER;
+            default:
+                return null;
+        }
+        /*
+        if (properties.getProperty("crawlerType").toUpperCase().equals("HATEOAS")) {
+            return HATEOAS;
+        } else if (properties.getProperty("crawlerType").toUpperCase().equals("SWAGGER")) {
+            return SWAGGER;
+        }
+        return null;
+        */
+    }
+
+    public ScannerType getScannerType(){
+        switch (String.valueOf(properties.getProperty("scannerType").toUpperCase())) {
+            case "XSS":
+                return XSS;
+            case "SQLI":
+                return SQLI;
+            default:
+                return null;
+        }
+        /*
+        if (properties.getProperty("scannerType").toUpperCase().equals("XSS")) {
+            return XSS;
+        } else if (properties.getProperty("scannerType").toUpperCase().equals("SQLI")) {
+            return SQLI;
+        }
+        return null;
+        */
     }
 
     public String getHATEOASEntryPoint(){
@@ -81,7 +129,11 @@ public class Configuration {
     }
 
     public String getAttackSetFileLocation() {
-        return properties.getProperty("attackSetFileLocation");
+        if (properties.getProperty("attackSetFileLocation").toLowerCase().equals("default")) {
+            return "src/main/resources/attackable/attackset.json";
+        } else {
+            return properties.getProperty("attackSetFileLocation");
+        }
     }
 
     public String getXSSPayloadsFileLocation(){
@@ -102,10 +154,6 @@ public class Configuration {
 
     public boolean getBoolUseAllHTTPMethods(){
         return Boolean.parseBoolean(properties.getProperty("allHTTPMethods"));
-    }
-
-    public String getVulnerabilityScanType(){
-        return properties.getProperty("scanForVulnerabilityTypes");
     }
 
     public boolean getBoolDeleteOldResultsFile(){

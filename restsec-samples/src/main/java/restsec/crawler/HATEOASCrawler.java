@@ -26,8 +26,14 @@ public class HATEOASCrawler implements Crawler {
         discoverLinks(entryPoint);
     }
 
-    @SuppressWarnings("SuspiciousMethodCalls")
-    private void discoverLinks(String entryResource) {
+    @Override
+    public AttackSet crawl(String target) {
+        LOGGER.info("Following HATEOAS links on : " + target);
+        return discoverLinks(target);
+    }
+
+    @SuppressWarnings({"SuspiciousMethodCalls", "unchecked"})
+    private AttackSet discoverLinks(String entryResource) {
         AttackSet attackSet = new AttackSet();
 
         HashMap<String, Boolean> relevantURLs;
@@ -49,14 +55,14 @@ public class HATEOASCrawler implements Crawler {
             attackSet.put(key, relevantURLs.get(key));
         }
 
-        new AttackSet().writeAttackSetToFile(attackSet);
+        return attackSet;
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private HashMap<String, Boolean> getLinksForResource(String resource) {
 
-        Pattern patternFullURL = Pattern.compile("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}/([-a-zA-Z0-9@:%_+.~#?&/=]*)");
-        Pattern patternHostAndPortOnly = Pattern.compile("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}(:?\\d+)*/");
+        Pattern patternFullURL = Pattern.compile("https?://(www\\.)?[a-zA-Z0-9@:%._+-~#=]{2,256}/([a-zA-Z0-9@:%_+-.~#?&/=]*)");
+        Pattern patternHostAndPortOnly = Pattern.compile("https?://(www\\.)?[a-zA-Z0-9@:%._+-~#=]{2,256}(:?\\d+)*/");
         String responseBody;
         responseBody = get(resource).asString();
 

@@ -6,43 +6,26 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restsec.config.Configuration;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Set;
 
-public class AttackSet {
+public class AttackSet extends JSONObject {
 
     private Logger LOGGER = LoggerFactory.getLogger(AttackSet.class);
-    private JSONObject attackSet = new JSONObject();
-
-//    public AttackSet(JSONObject attackSet) {
-//        this.attackSet = attackSet;
-//    }
 
     public AttackSet() {
-
     }
 
-    public String getAttackSetFileName() {
-
-        Configuration config = new Configuration();
-
-        if (config.getAttackSetFileLocation().equals("default")) {
-            return "src/main/resources/attackable/attackset.json";
-        }
-        return config.getAttackSetFileLocation();
-    }
-
-    public void writeAttackSetToFile(AttackSet attackSet) {
+    void writeAttackSetToFile(AttackSet attackSet, String filePath) {
         ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
-        printAttackSet();
+        print(attackSet);
 
         try {
 
-            FileWriter file = new FileWriter("src/main/resources/attackable/attackset.json");
+            FileWriter file = new FileWriter(filePath);
 
             String output = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(attackSet);
 
@@ -54,13 +37,13 @@ public class AttackSet {
             e.printStackTrace();
         }
 
-        LOGGER.info("AttackSet written to File.");
+        LOGGER.info("AttackSet written to file (size : "+getSize(attackSet)+").");
 
     }
 
     @SuppressWarnings("unchecked")
-    public JSONObject createFullAttackSetForPathsObject(JSONObject pathsObject) {
-        JSONObject attackSet = new JSONObject();
+    public AttackSet createFullAttackSet(JSONObject pathsObject) {
+        AttackSet attackSet = new AttackSet();
 
         for (String currentPath : (Set<String>) pathsObject.keySet()) {
             JSONArray array = new JSONArray();
@@ -70,29 +53,26 @@ public class AttackSet {
             array.add("DELETE");
             attackSet.put(currentPath, array);
         }
-
-        LOGGER.info("attackSet created for bruteforcing (size: " + pathsObject.size() * 4 + ")");
         return attackSet;
     }
 
-    public JSONObject getAttackSet() {
-        return this.attackSet;
-    }
+    private int getSize(AttackSet attackSet) {
+        int counter = 0;
 
-    public void setAttackSet(JSONObject attackSet) {
-        this.attackSet = attackSet;
-    }
-
-    private void printAttackSet() {
-        System.out.println("--- Attack Set ---");
         for (Object key : attackSet.keySet()) {
-            System.out.println(key + " : " + attackSet.get(key));
+            JSONArray a = (JSONArray) attackSet.get(key);
+            counter += a.size();
         }
-        System.out.println("------------------");
+
+        return counter;
     }
 
-    @SuppressWarnings("unchecked")
-    public void put(Object key, Boolean aBoolean) {
-        attackSet.put(key, aBoolean);
+    private void print(AttackSet attackSet) {
+        LOGGER.info("--- Attack Set ---");
+        for (Object key : attackSet.keySet()) {
+            LOGGER.info(key + " : " + attackSet.get(key));
+        }
+        LOGGER.info("------------------");
     }
+
 }

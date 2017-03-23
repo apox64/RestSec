@@ -6,7 +6,11 @@ import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.logging.LogType;
+import org.openqa.selenium.logging.LoggingPreferences;
+import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -20,21 +24,25 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 
-public class CallbackPage {
+public class CallbackServer {
 
     private static int port;
     private static Server server;
-    private static ChromeDriver chromeDriver;
+    private static WebDriver chromeDriver;
 
     private static Configuration config;
 
-    private static final Logger logger = Logger.getLogger(CallbackPage.class);
+    private static final Logger logger = Logger.getLogger(CallbackServer.class);
 
-    public CallbackPage() {
+    public CallbackServer() {
         config = new Configuration();
         port = config.getJettyCallbackPort();
         server = new Server(port);
         configureJettyLogging(config.getBoolDeleteOldJettyLogs());
+    }
+
+    public CallbackServer(Configuration config) {
+
     }
 
     private static void configureJettyLogging(boolean deleteOldLogs) {
@@ -64,7 +72,7 @@ public class CallbackPage {
 
     }
 
-    public void startTestPageServer() {
+    public void startCallbackServer() {
         try {
             server.start();
             String localhost = InetAddress.getLocalHost().getHostAddress();
@@ -74,7 +82,7 @@ public class CallbackPage {
         }
     }
 
-    public void stopTestPageServer() {
+    public void stopCallbackServer() {
         try {
             server.stop();
             logger.info("Jetty Server stopped.");
@@ -86,28 +94,25 @@ public class CallbackPage {
     private void setWebDriver() {
         //Drivers for other OS can be downloaded here: https://sites.google.com/a/chromium.org/chromedriver/downloads
         System.setProperty("webdriver.chrome.driver", "C:\\Users\\DMD\\Development\\RestSec\\restsec-samples\\chromedriver-win32.exe");
-        DesiredCapabilities capabilities = DesiredCapabilities.chrome();
+        DesiredCapabilities desiredCapabilities = DesiredCapabilities.chrome();
 
-        Properties properties = new Properties();
-        InputStream stream = CallbackPage.class.getClassLoader().getResourceAsStream("config.properties");
-        try {
-            properties.load(stream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         logger.info("Use Proxy: "+config.getBoolUseProxy());
         if (config.getBoolUseProxy()) {
             Proxy proxy = new Proxy();
             proxy.setHttpProxy(config.getProxyIP() + ":" + config.getProxyPort());
-            capabilities.setCapability("proxy", proxy);
-            logger.info("Using proxy: "+capabilities.getCapability("proxy"));
+            desiredCapabilities.setCapability("proxy", proxy);
+            logger.info("Using proxy: "+desiredCapabilities.getCapability("proxy"));
         }
 
-        //silence webdriver
+
+        //silence webdriver logs
+        LoggingPreferences loggingPreferences = new LoggingPreferences();
+        loggingPreferences.enable(LogType.DRIVER, java.util.logging.Level.OFF);
         System.setProperty("webdriver.chrome.silentOutput", "true");
         Logger.getLogger("org.openqa.selenium.remote.ProtocolHandshake").setLevel(Level.OFF);
+        desiredCapabilities.setCapability(CapabilityType.LOGGING_PREFS, loggingPreferences);
 
-        chromeDriver = new ChromeDriver(capabilities);
+        chromeDriver = new ChromeDriver(desiredCapabilities);
 
     }
 

@@ -4,7 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import restsec.config.Configuration;
 
 import java.io.*;
@@ -18,22 +19,30 @@ import java.util.regex.Pattern;
 public class Evaluator {
 
     private static int vulnerabilityCounter = 0;
-    private static final Logger LOGGER = Logger.getLogger(Evaluator.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(Evaluator.class);
 
-    public static void deleteOldLogFile() {
+    private Configuration config;
 
-        if (new Configuration().getBoolDeleteOldResultsFile()) {
+    Evaluator(Configuration configuration) {
+        config = configuration;
+    }
+
+    private void deleteOldLogFile() {
+
+        if (config.getBoolDeleteOldResultsFile()) {
             try {
                 Files.deleteIfExists(new File("src/main/resources/results/results.json").toPath());
-            } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.info("Old Logfile \"results.json\" deleted.");
+            }catch (IOException ioe) {
+                ioe.printStackTrace();
+//            } catch (FileNotFoundException e) {
+//                LOGGER.warn("Old Logfile \"results.json\" not found.");
             }
-            LOGGER.info("results.json deleted.");
         }
 
     }
 
-    static void evaluateJettyLogfile() {
+    void evaluateJettyLogfile() {
 
         deleteOldLogFile();
 

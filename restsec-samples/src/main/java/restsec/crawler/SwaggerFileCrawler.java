@@ -24,11 +24,17 @@ public class SwaggerFileCrawler implements Crawler {
 
     @Override
     public void crawl(){
-        LOGGER.info("Parsing Swagger File from : "+swaggerFileLocation);
+        LOGGER.info("Swagger File: \t\t"+swaggerFileLocation);
         parseSwaggerJSON(swaggerFileLocation, useAllHTTPMethods);
     }
 
-    private void parseSwaggerJSON(String swaggerFile, boolean useAllHTTPMethods) {
+    @Override
+    public AttackSet crawl(String target) {
+        LOGGER.info("Swagger File: \t\t"+swaggerFileLocation);
+        return parseSwaggerJSON(swaggerFileLocation, useAllHTTPMethods);
+    }
+
+    private AttackSet parseSwaggerJSON(String swaggerFile, boolean useAllHTTPMethods) {
         JSONParser jsonParser = new JSONParser();
 
         try {
@@ -37,65 +43,67 @@ public class SwaggerFileCrawler implements Crawler {
             String version = (String) jsonObject.get("swagger");
             LOGGER.info("Swagger Version: \t" + version);
             String host = (String) jsonObject.get("host");
-            LOGGER.info("Host: \t\t\t\t" + host);
+            LOGGER.info("Target: \t\t\t" + host);
             String basePath = (String) jsonObject.get("basePath");
             LOGGER.info("Basepath: \t\t\t" + basePath);
             JSONObject pathsObj = (JSONObject) jsonObject.get("paths");
-            LOGGER.info("Paths: \t\t\t" + pathsObj.size() + " paths found.");
+            LOGGER.info("Paths: \t\t\t\t" + pathsObj.size() + " paths found.");
 
             AttackSet attackSet = new AttackSet();
 
             if (useAllHTTPMethods) {
-                attackSet.setAttackSet(new AttackSet().createFullAttackSetForPathsObject(pathsObj));
-                attackSet.writeAttackSetToFile(attackSet);
+                LOGGER.info("Creating AttackSet for *all* HTTP Methods ...");
+                return attackSet.createFullAttackSet(pathsObj);
             } else {
-                attackSet.setAttackSet(findAttackableEndpoints(pathsObj));
-                attackSet.writeAttackSetToFile(attackSet);
+                return findAttackableEndpoints(pathsObj);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        return new AttackSet();
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject findAttackableEndpoints(JSONObject pathsObject) {
+    private AttackSet findAttackableEndpoints(JSONObject pathsObject) {
         Iterator<String> it = pathsObject.keySet().iterator();
-        JSONObject attackSet = new JSONObject();
+//        JSONObject jsonObject = new JSONObject();
+        AttackSet attackSet = new AttackSet();
         int attackCounter = 0;
 
         while (it.hasNext()) {
             String currentPath = it.next();
-            LOGGER.info("Checking path: " + currentPath);
+            LOGGER.info("Checking path: \t\t" + currentPath);
             JSONObject httpVerbsObject = (JSONObject) pathsObject.get(currentPath);
-            JSONArray array = new JSONArray();
+            JSONArray jsonArray = new JSONArray();
 
             for (String s : (Iterable<String>) httpVerbsObject.keySet()) {
                 switch (s) {
                     case "get":
                         break;
                     case "post":
-                        array.add("POST");
+                        jsonArray.add("POST");
                         attackCounter++;
                         break;
                     case "patch":
-                        array.add("PATCH");
+                        jsonArray.add("PATCH");
                         attackCounter++;
                         break;
                     case "put":
-                        array.add("PUT");
+                        jsonArray.add("PUT");
                         attackCounter++;
                         break;
                     case "delete":
-                        array.add("DELETE");
+                        jsonArray.add("DELETE");
                         attackCounter++;
                         break;
                 }
 
             }
 
-            if (array.size() != 0) {
-                attackSet.put(currentPath, array);
+            if (jsonArray.size() != 0) {
+                attackSet.put(currentPath, jsonArray);
             }
 
         }

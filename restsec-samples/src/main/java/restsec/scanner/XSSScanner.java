@@ -7,7 +7,7 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restsec.AttackSet;
-import restsec.CallbackPage;
+import restsec.CallbackServer;
 import restsec.config.Configuration;
 import restsec.Evaluator;
 
@@ -24,9 +24,7 @@ public class XSSScanner implements Scanner {
 
     private Configuration config = new Configuration();
     private static final Logger LOGGER = LoggerFactory.getLogger(XSSScanner.class);
-    private CallbackPage callbackPage = new CallbackPage();
-
-
+    private CallbackServer callbackServer = new CallbackServer();
 
     private String attackSetFile = "";
     private JSONObject attackSet = new JSONObject();
@@ -44,8 +42,7 @@ public class XSSScanner implements Scanner {
         JSONParser parser = new JSONParser();
         try{
             //noinspection ConstantConditions
-            AttackSet attackSet1 = new AttackSet();
-            attackSet = (JSONObject) parser.parse(new FileReader(attackSet1.getAttackSetFileName()));
+            attackSet = (JSONObject) parser.parse(new FileReader(config.getAttackSetFileLocation()));
 
             int attackSetSize = 0;
             for (Object key : attackSet.keySet()) {
@@ -64,7 +61,7 @@ public class XSSScanner implements Scanner {
 
         LOGGER.info("Trying XSS payloads ...");
 
-        callbackPage.startTestPageServer();
+        callbackServer.startCallbackServer();
 
         for (Object attackPoint : attackSet.keySet()) {
             String endpoint = attackPoint.toString();
@@ -75,7 +72,7 @@ public class XSSScanner implements Scanner {
 
         ScannerUtils.printPackageStatistics();
 
-        callbackPage.stopTestPageServer();
+        callbackServer.stopCallbackServer();
 
     }
 
@@ -105,7 +102,7 @@ public class XSSScanner implements Scanner {
                     sendPacket(url, httpVerb, payload);
                     LOGGER.info("Accepted.");
                     ScannerUtils.acceptedPackets++;
-                    if (callbackPage.hasAlertOnReload(config.getBaseURI()+":"+config.getPort()+"/")) {
+                    if (callbackServer.hasAlertOnReload(config.getBaseURI()+":"+config.getPort()+"/")) {
                         Evaluator.writeVulnerabilityToFile("XSS (alert)", url, payload, "-");
                     }
                 } catch (AssertionError ae) {
@@ -176,7 +173,7 @@ public class XSSScanner implements Scanner {
 
 
     private String updatePayloadWithCallbackValues(String payload){
-        String regex = "script.*(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):(\\d*).*script";
+        String regex = "script.*(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):(\\d{1,5}).*script";
         Pattern p = Pattern.compile(regex);
         Matcher matcher = p.matcher(payload);
         while (matcher.find()) {

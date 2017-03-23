@@ -1,7 +1,6 @@
 package restsec.crawler;
 
 import restsec.config.Configuration;
-import restsec.config.CrawlerType;
 
 public class CrawlerFactory {
 
@@ -13,11 +12,7 @@ public class CrawlerFactory {
 
     public Crawler createCrawler() {
 
-//      CrawlerType crawlerType = config.getCrawlerType();
-        CrawlerType crawlerType = null;
-
-        //TODO: Inline config.get...();
-        switch (crawlerType) {
+        switch (config.getCrawlerType()) {
             case HATEOAS:
                 return new HATEOASCrawler(config.getHATEOASEntryPoint());
             case SWAGGER:
