@@ -30,6 +30,8 @@ class Controller {
         scanner.scan(target, attackSet);
         */
 
+        System.exit(0);
+
         //TODO : Currently exiting here, so you don't have to stop the programm everytime
 
         ScannerFactory scannerFactory = new ScannerFactory(config);

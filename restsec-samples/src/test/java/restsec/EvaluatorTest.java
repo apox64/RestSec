@@ -13,7 +13,7 @@ class EvaluatorTest {
     @DisplayName("Writing Vulnerability (vulnType, endpoint, payload, comment) to file.")
     void writeVulnerabilityToFileTest() {
         int counter = 0;
-        Evaluator.writeVulnerabilityToFile("vulnType_test","endpoint_test", "payload_test", "comment_test");
+        Evaluator.writeVulnerabilityToResultsFile("vulnType_test","endpoint_test", "payload_test", "comment_test");
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader("src/main/resources/results/results.json"));
             while (bufferedReader.readLine() != null) {

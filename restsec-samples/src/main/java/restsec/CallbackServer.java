@@ -4,6 +4,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
+import org.openqa.selenium.Point;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -104,7 +105,6 @@ public class CallbackServer {
             logger.info("Using proxy: "+desiredCapabilities.getCapability("proxy"));
         }
 
-
         //silence webdriver logs
         LoggingPreferences loggingPreferences = new LoggingPreferences();
         loggingPreferences.enable(LogType.DRIVER, java.util.logging.Level.OFF);
@@ -112,11 +112,12 @@ public class CallbackServer {
         Logger.getLogger("org.openqa.selenium.remote.ProtocolHandshake").setLevel(Level.OFF);
         desiredCapabilities.setCapability(CapabilityType.LOGGING_PREFS, loggingPreferences);
 
+        //TODO: Find a way to run Chrome headless (xvfb?)
+
         chromeDriver = new ChromeDriver(desiredCapabilities);
 
     }
 
-    //this lets you actually execute the stored xss payload by reloading the page (with selenium webdriver)
     public boolean hasAlertOnReload(String url) throws TimeoutException {
         boolean hasAlert = false;
 

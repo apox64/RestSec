@@ -31,12 +31,10 @@ public class Evaluator {
 
         if (config.getBoolDeleteOldResultsFile()) {
             try {
-                Files.deleteIfExists(new File("src/main/resources/results/results.json").toPath());
-                LOGGER.info("Old Logfile \"results.json\" deleted.");
-            }catch (IOException ioe) {
+                boolean deleteStatus = Files.deleteIfExists(new File("src/main/resources/results/results.json").toPath());
+                LOGGER.info("Old Logfile \"results.json\" deleted: " + deleteStatus);
+            } catch (IOException ioe) {
                 ioe.printStackTrace();
-//            } catch (FileNotFoundException e) {
-//                LOGGER.warn("Old Logfile \"results.json\" not found.");
             }
         }
 
@@ -69,9 +67,9 @@ public class Evaluator {
                         Matcher m = p.matcher(line);
                         //noinspection ResultOfMethodCallIgnored
                         m.find();
-                        writeVulnerabilityToFile("XSS", "unknown", "unknown", "Payload called back: "+m.group());
+                        writeVulnerabilityToResultsFile("XSS", "unknown", "unknown", "Payload called back: "+m.group());
                     } else {
-                        writeVulnerabilityToFile("XSS", "unknown", "unknown", "Payload called back: no token found");
+                        writeVulnerabilityToResultsFile("XSS", "unknown", "unknown", "Payload called back: no token found");
                     }
                 }
             } else {
@@ -84,13 +82,13 @@ public class Evaluator {
         }
     }
 
-    public static void writeVulnerabilityToFile(String vulnType, String endpoint, String payload, String comment) {
+    public static void writeVulnerabilityToResultsFile(String vulnType, String endpoint, String payload, String comment) {
 
-        File f = new File("src/main/resources/results/results.json");
+        File file = new File("src/main/resources/results/results.json");
 
-        if (!f.isFile()) {
+        if (!file.isFile()) {
             try {
-                FileWriter fileWriter = new FileWriter(f, false);
+                FileWriter fileWriter = new FileWriter(file, false);
                 fileWriter.write("{}");
                 fileWriter.flush();
                 fileWriter.close();
@@ -105,7 +103,6 @@ public class Evaluator {
         Gson gsonBuilder = new GsonBuilder().setPrettyPrinting().create();
         JsonObject existingJsonObject = new JsonObject();
 
-        //read existing (father object)
         try {
             existingJsonObject = (JsonObject) parser.parse(new FileReader("src/main/resources/results/results.json"));
         } catch (FileNotFoundException e) {
@@ -122,12 +119,11 @@ public class Evaluator {
         existingJsonObject.add(String.valueOf(vulnerabilityCounter), new Gson().toJsonTree(newJsonObject));
 
         try {
-            FileWriter file = new FileWriter("src/main/resources/results/results.json", false);
+            FileWriter fileWriter = new FileWriter(file, false);
             String jsonOutput = gsonBuilder.toJson(existingJsonObject);
-            file.write(jsonOutput);
-            file.flush();
-            file.close();
-
+            fileWriter.write(jsonOutput);
+            fileWriter.flush();
+            fileWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

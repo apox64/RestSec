@@ -6,7 +6,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restsec.AttackSet;
 import restsec.CallbackServer;
 import restsec.config.Configuration;
 import restsec.Evaluator;
@@ -103,7 +102,7 @@ public class XSSScanner implements Scanner {
                     LOGGER.info("Accepted.");
                     ScannerUtils.acceptedPackets++;
                     if (callbackServer.hasAlertOnReload(config.getBaseURI()+":"+config.getPort()+"/")) {
-                        Evaluator.writeVulnerabilityToFile("XSS (alert)", url, payload, "-");
+                        Evaluator.writeVulnerabilityToResultsFile("XSS (alert)", url, payload, "-");
                     }
                 } catch (AssertionError ae) {
                     LOGGER.info("Rejected. (Server Status Code does not match expected Code)");

@@ -126,7 +126,7 @@ class BasicSecurityHeaderTests {
                         post(resource);
 
         if (response.getHeader("Content-Type").equals("myHeader")) {
-            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "Content-Type: myHeader", "Reflected invalid header type.");
+            Evaluator.writeVulnerabilityToResultsFile("Insecure HTTP Header", resource, "Content-Type: myHeader", "Reflected invalid header type.");
             Assertions.fail("Fake Request Accept-Header was reflected in Response Content-Type. Missing server-side validation?");
         }
     }
@@ -147,7 +147,7 @@ class BasicSecurityHeaderTests {
         int statusCode = response.getStatusCode();
 
         if (statusCode == 200) {
-            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "Content-Type: URLENC", "Server accepted Content-Type: URLENC when sending different Content-Type.");
+            Evaluator.writeVulnerabilityToResultsFile("Insecure HTTP Header", resource, "Content-Type: URLENC", "Server accepted Content-Type: URLENC when sending different Content-Type.");
             Assertions.fail(">>> Server accepted Content-Type: URLENC when sending different Content-Type.");
         }
 
@@ -166,7 +166,7 @@ class BasicSecurityHeaderTests {
                         post(resource);
 
         if (!response.getHeader("X-Content-Type-Options").equals("nosniff")) {
-            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "X-Content-Type-Options: nosniff", "Security-Header \"X-Content-Type-Options: nosniff\" missing.");
+            Evaluator.writeVulnerabilityToResultsFile("Insecure HTTP Header", resource, "X-Content-Type-Options: nosniff", "Security-Header \"X-Content-Type-Options: nosniff\" missing.");
             Assertions.fail("Security-Header \"X-Content-Type-Options: nosniff\" not found.");
         }
     }
@@ -184,11 +184,11 @@ class BasicSecurityHeaderTests {
                         post(resource);
 
         if (!response.getHeaders().hasHeaderWithName("X-Frame-Options")) {
-            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "X-Frame-Options", "Security-Header \"X-Frame-Options\" missing.");
+            Evaluator.writeVulnerabilityToResultsFile("Insecure HTTP Header", resource, "X-Frame-Options", "Security-Header \"X-Frame-Options\" missing.");
             Assertions.fail("Security-Header \"X-Frame-Options\" not found.");
         }
         if (!response.getHeader("X-Frame-Options").equals("SAMEORIGIN") || !response.getHeader("X-Frame-Options").equals("deny")) {
-            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "X-Frame-Options: \"SAMEORIGIN\" OR \"deny\"", "Security-Header \"X-Frame-Options: SAMEORIGIN\" OR \"deny\" missing.");
+            Evaluator.writeVulnerabilityToResultsFile("Insecure HTTP Header", resource, "X-Frame-Options: \"SAMEORIGIN\" OR \"deny\"", "Security-Header \"X-Frame-Options: SAMEORIGIN\" OR \"deny\" missing.");
             Assertions.fail("Security-Header \"X-Frame-Options: SAMEORIGIN\" not found.");
         }
     }
@@ -205,7 +205,7 @@ class BasicSecurityHeaderTests {
                         post(resource);
 
         if (!response.getHeaders().hasHeaderWithName("X-XSS-Protection")) {
-            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "X-XSS-Protection", "Security-Header \"X-XSS-Protection\" missing.");
+            Evaluator.writeVulnerabilityToResultsFile("Insecure HTTP Header", resource, "X-XSS-Protection", "Security-Header \"X-XSS-Protection\" missing.");
             Assertions.fail("Security-Header \"X-XSS-Protection\" missing.");
         }
     }
@@ -228,7 +228,7 @@ class BasicSecurityHeaderTests {
         int statusCode = response.getStatusCode();
 
         if (statusCode == 200) {
-            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "No Content-Type Header", "Target accepted not using a content-type header at all (200 OK).");
+            Evaluator.writeVulnerabilityToResultsFile("Insecure HTTP Header", resource, "No Content-Type Header", "Target accepted not using a content-type header at all (200 OK).");
             Assertions.fail(">>> Server accepted not using a content-type header : 200 OK");
         }
     }
@@ -245,7 +245,7 @@ class BasicSecurityHeaderTests {
                         post(resource);
 
         if (!response.getHeaders().hasHeaderWithName("Strict-Transport-Security")) {
-            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "Strict-Transport-Security", "Security-Header \"Strict-Transport-Security\" missing.");
+            Evaluator.writeVulnerabilityToResultsFile("Insecure HTTP Header", resource, "Strict-Transport-Security", "Security-Header \"Strict-Transport-Security\" missing.");
             Assertions.fail("Security-Header \"Strict-Transport-Security\" missing.");
 
         }
@@ -263,7 +263,7 @@ class BasicSecurityHeaderTests {
                         post(resource);
 
         if (!response.getHeaders().hasHeaderWithName("Content-Security-Policy")) {
-            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "Content-Security-Policy", "Security-Header \"Content-Security-Policy\" missing.");
+            Evaluator.writeVulnerabilityToResultsFile("Insecure HTTP Header", resource, "Content-Security-Policy", "Security-Header \"Content-Security-Policy\" missing.");
             Assertions.fail("Security-Header \"Content-Security-Policy\" missing.");
 
         }
@@ -281,7 +281,7 @@ class BasicSecurityHeaderTests {
                         post(resource);
 
         if (!response.getHeaders().hasHeaderWithName("X-Permitted-Cross-Domain-Policies")) {
-            Evaluator.writeVulnerabilityToFile("Insecure HTTP Header", resource, "X-Permitted-Cross-Domain-Policies", "Security-Header \"X-Permitted-Cross-Domain-Policies\" missing.");
+            Evaluator.writeVulnerabilityToResultsFile("Insecure HTTP Header", resource, "X-Permitted-Cross-Domain-Policies", "Security-Header \"X-Permitted-Cross-Domain-Policies\" missing.");
             Assertions.fail("Security-Header \"X-Permitted-Cross-Domain-Policies\" missing.");
 
         }
