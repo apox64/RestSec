@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 
 import static io.restassured.RestAssured.given;
 
-class BasicSecurityHeaderTests {
+class BasicSecurityHeaderDemos {
 
     private static String serverIP = "";
     private static int serverPort = 0;

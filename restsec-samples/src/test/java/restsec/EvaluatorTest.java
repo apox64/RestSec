@@ -24,7 +24,7 @@ class EvaluatorTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Assertions.assertTrue(counter == 8);
+        Assertions.assertTrue(counter == 14);
     }
 
     @AfterEach

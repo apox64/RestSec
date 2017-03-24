@@ -6,6 +6,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restsec.config.Configuration;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -19,6 +20,11 @@ public class AttackSet extends JSONObject {
     }
 
     void writeAttackSetToFile(AttackSet attackSet, String filePath) {
+
+        if (filePath.equals("default")) {
+            filePath = new Configuration().getAttackSetFileLocation();
+        }
+
         ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
         print(attackSet);
@@ -37,7 +43,7 @@ public class AttackSet extends JSONObject {
             e.printStackTrace();
         }
 
-        LOGGER.info("AttackSet written to file (size : "+getSize(attackSet)+").");
+        LOGGER.info("AttackSet written to file (size : "+attackSet.size()+").");
 
     }
 
@@ -54,17 +60,6 @@ public class AttackSet extends JSONObject {
             attackSet.put(currentPath, array);
         }
         return attackSet;
-    }
-
-    private int getSize(AttackSet attackSet) {
-        int counter = 0;
-
-        for (Object key : attackSet.keySet()) {
-            JSONArray a = (JSONArray) attackSet.get(key);
-            counter += a.size();
-        }
-
-        return counter;
     }
 
     private void print(AttackSet attackSet) {

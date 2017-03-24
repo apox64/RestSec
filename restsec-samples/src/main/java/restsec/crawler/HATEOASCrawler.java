@@ -46,7 +46,7 @@ public class HATEOASCrawler implements Crawler {
                 if (!Boolean.parseBoolean(pair.getValue().toString())) {
                     HashMap<String, Boolean> temp;
                         temp = getLinksForResource(pair.getKey().toString());
-                    relevantURLs = mergeHashMaps(relevantURLs, temp);
+                    relevantURLs = mergeHashMapsSimple(relevantURLs, temp);
                 }
             }
         }
@@ -62,16 +62,17 @@ public class HATEOASCrawler implements Crawler {
     private HashMap<String, Boolean> getLinksForResource(String resource) {
 
         Pattern patternFullURL = Pattern.compile("https?://(www\\.)?[a-zA-Z0-9@:%._+-~#=]{2,256}/([a-zA-Z0-9@:%_+-.~#?&/=]*)");
-        Pattern patternHostAndPortOnly = Pattern.compile("https?://(www\\.)?[a-zA-Z0-9@:%._+-~#=]{2,256}(:?\\d+)*/");
+        Pattern patternHostAndPortOnly = Pattern.compile("https?://(www\\.)?[a-zA-Z0-9@:%._+-~#=]{2,256}(:?\\d+)/");
         String responseBody;
         responseBody = get(resource).asString();
 
         Matcher matcherFullURL = patternFullURL.matcher(responseBody);
         Matcher matcherHostAndPortOnly = patternHostAndPortOnly.matcher(resource);
 
-        HashMap<String, Boolean> relevantURLsOnly = new HashMap<>();
+        HashMap<String, Boolean> sameOriginURLsOnly = new HashMap<>();
 
         HashMap<String, Boolean> allURLsInResponse = new HashMap<>();
+
         while (matcherFullURL.find()) {
             allURLsInResponse.put(matcherFullURL.group(), false);
         }
@@ -85,14 +86,24 @@ public class HATEOASCrawler implements Crawler {
             Matcher m = patternHostAndPortOnly.matcher(url.getKey().toString());
             while (m.find()) {
                 if (m.group().equals(entryResourceDomainAndPortOnly)) {
-                    relevantURLsOnly.put(url.getKey().toString(), false);
+                    sameOriginURLsOnly.put(url.getKey().toString(), false);
                 }
             }
         }
 
-        relevantURLsOnly.put(resource, true);
+        sameOriginURLsOnly.put(resource, true);
 
-        return relevantURLsOnly;
+        return sameOriginURLsOnly;
+    }
+
+    private HashMap<String, Boolean> mergeHashMapsSimple(HashMap<String, Boolean> map1, HashMap<String, Boolean> map2) {
+
+        HashMap<String, Boolean> resultMap = new HashMap<>();
+
+        resultMap.putAll(map1);
+        resultMap.putAll(map2);
+
+        return resultMap;
     }
 
     @SuppressWarnings("SuspiciousMethodCalls")

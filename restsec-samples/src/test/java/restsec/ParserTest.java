@@ -1,13 +1,17 @@
 package restsec;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.junit.jupiter.api.*;
+import restsec.config.Configuration;
 import restsec.crawler.HATEOASCrawler;
 import restsec.crawler.SwaggerFileCrawler;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.net.URISyntaxException;
+import java.rmi.server.ExportException;
 
 class ParserTest {
     @BeforeEach
@@ -24,7 +28,9 @@ class ParserTest {
     @DisplayName("HATEOAS Crawler for spring-hateoas-demo")
     void parserHATEOASSpringDemo() {
         HATEOASCrawler hateoasCrawler = new HATEOASCrawler("http://localhost:10001/albums/");
-        hateoasCrawler.crawl();
+        AttackSet attackSet = hateoasCrawler.crawl("http://localhost:10001/albums/");
+
+        new AttackSet().writeAttackSetToFile(attackSet, "src/main/resources/attackable/attackset.json");
 
         JsonObject attackSetFromFile = new JsonObject();
 
@@ -43,15 +49,15 @@ class ParserTest {
     @Test
     @DisplayName("Swagger Crawler for swagger-juiceshop-short.json, not all HTTP methods")
     void parserSwaggerJuiceShopShortNotAllHTTPMethods() throws URISyntaxException {
-        String file = "src/main/resources/docs_swagger/swagger-juiceshop-short.json";
-        SwaggerFileCrawler swaggerFileCrawler = new SwaggerFileCrawler(file, false);
-        swaggerFileCrawler.crawl();
+        SwaggerFileCrawler swaggerFileCrawler = new SwaggerFileCrawler("src/main/resources/docs_swagger/swagger-juiceshop-short.json", false);
+        AttackSet attackSet = swaggerFileCrawler.crawl(new Configuration().getTargetURLAsString());
+        new AttackSet().writeAttackSetToFile(attackSet, "default");
 
-        JsonObject attackSetFromFile = new JsonObject();
+        JSONObject attackSetFromFile = new JSONObject();
 
         try {
-            attackSetFromFile = (JsonObject) new JsonParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
-        } catch (FileNotFoundException e) {
+            attackSetFromFile = (JSONObject) new JSONParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -63,13 +69,14 @@ class ParserTest {
     @DisplayName("Swagger Crawler for swagger-juiceshop-short.json, with all HTTP methods")
     void parserSwaggerJuiceShopShortWithAllHTTPMethods() {
         SwaggerFileCrawler swaggerFileCrawler = new SwaggerFileCrawler("src/main/resources/docs_swagger/swagger-juiceshop-short.json", true);
-        swaggerFileCrawler.crawl();
+        AttackSet attackSet = swaggerFileCrawler.crawl(new Configuration().getTargetURLAsString());
+        new AttackSet().writeAttackSetToFile(attackSet, "default");
 
-        JsonObject attackSetFromFile = new JsonObject();
+        JSONObject attackSetFromFile = new JSONObject();
 
         try {
-            attackSetFromFile = (JsonObject) new JsonParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
-        } catch (FileNotFoundException e) {
+            attackSetFromFile = (JSONObject) new JSONParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -81,13 +88,14 @@ class ParserTest {
     @DisplayName("Swagger Crawler for swagger-juiceshop.json, not all HTTP methods")
     void parserSwaggerJuiceShopFullNotAllHTTPMethods() {
         SwaggerFileCrawler swaggerFileCrawler = new SwaggerFileCrawler("src/main/resources/docs_swagger/swagger-juiceshop.json", false);
-        swaggerFileCrawler.crawl();
+        AttackSet attackSet = swaggerFileCrawler.crawl(new Configuration().getTargetURLAsString());
+        new AttackSet().writeAttackSetToFile(attackSet, "default");
 
-        JsonObject attackSetFromFile = new JsonObject();
+        JSONObject attackSetFromFile = new JSONObject();
 
         try {
-            attackSetFromFile = (JsonObject) new JsonParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
-        } catch (FileNotFoundException e) {
+            attackSetFromFile = (JSONObject) new JSONParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -101,13 +109,14 @@ class ParserTest {
     @DisplayName("Swagger Crawler for swagger-juiceshop.json, with all HTTP methods")
     void parserSwaggerJuiceShopFullWithAllHTTPMethods() {
         SwaggerFileCrawler swaggerFileCrawler = new SwaggerFileCrawler("src/main/resources/docs_swagger/swagger-juiceshop.json", true);
-        swaggerFileCrawler.crawl();
+        AttackSet attackSet = swaggerFileCrawler.crawl(new Configuration().getTargetURLAsString());
+        new AttackSet().writeAttackSetToFile(attackSet, "default");
 
-        JsonObject attackSetFromFile = new JsonObject();
+        JSONObject attackSetFromFile = new JSONObject();
 
         try {
-            attackSetFromFile = (JsonObject) new JsonParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
-        } catch (FileNotFoundException e) {
+            attackSetFromFile = (JSONObject) new JSONParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -121,13 +130,14 @@ class ParserTest {
     @DisplayName("Swagger Crawler for instagram-api-test.json, not all HTTP methods")
     void parserSwaggerInstagramAPINotAllHTTPMethods() {
         SwaggerFileCrawler swaggerFileCrawler = new SwaggerFileCrawler("src/main/resources/docs_swagger/swagger-instagram-api-test.json", false);
-        swaggerFileCrawler.crawl();
+        AttackSet attackSet = swaggerFileCrawler.crawl(new Configuration().getTargetURLAsString());
+        new AttackSet().writeAttackSetToFile(attackSet, "default");
 
-        JsonObject attackSetFromFile = new JsonObject();
+        JSONObject attackSetFromFile = new JSONObject();
 
         try {
-            attackSetFromFile = (JsonObject) new JsonParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
-        } catch (FileNotFoundException e) {
+            attackSetFromFile = (JSONObject) new JSONParser().parse(new FileReader("src/main/resources/attackable/attackset.json"));
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
