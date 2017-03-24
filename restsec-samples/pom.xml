@@ -166,7 +166,7 @@
                 <version>2.19.1</version>
                 <configuration>
                     <excludes>
-                        <!--BasicSecurityHeaderTestsemos.java-->
+                        <!--BasicSecurityHeaderTests.java-->
                     </excludes>
                 </configuration>
                 <dependencies>

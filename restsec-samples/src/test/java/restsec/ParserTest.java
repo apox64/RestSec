@@ -12,7 +12,6 @@ import restsec.crawler.SwaggerFileCrawler;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.net.URISyntaxException;
-import java.rmi.server.ExportException;
 
 class ParserTest {
     @BeforeEach
@@ -25,12 +24,12 @@ class ParserTest {
         //empty
     }
 
-    @Ignore
+    @Disabled
     @Test
     @DisplayName("HATEOAS Crawler for spring-hateoas-demo")
     void parserHATEOASSpringDemo() {
         HATEOASCrawler hateoasCrawler = new HATEOASCrawler("http://localhost:10001/albums/");
-        AttackSet attackSet = hateoasCrawler.crawl("http://localhost:10001/albums/");
+        AttackSet attackSet = hateoasCrawler.crawl("http://localhost:10002/albums/");
 
         new AttackSet().writeAttackSetToFile(attackSet, "src/main/resources/attackable/attackset.json");
 
