@@ -2,6 +2,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import juiceshop.JuiceShopBasic;
+import org.junit.Ignore;
 import org.junit.jupiter.api.*;
 import restsec.Evaluator;
 
@@ -15,7 +16,8 @@ import java.util.regex.Pattern;
 
 import static io.restassured.RestAssured.given;
 
-class BasicSecurityHeaderDemos {
+@Ignore
+public class BasicSecurityHeaderDemos {
 
     private static String serverIP = "";
     private static int serverPort = 0;
@@ -26,8 +28,9 @@ class BasicSecurityHeaderDemos {
     private static String password;
     private static final String resource = "rest/user/login";
 
+
     @BeforeAll
-    public static void init() throws IOException {
+    static void init() throws IOException {
 
         System.out.println("Loading properties from file ...");
 
