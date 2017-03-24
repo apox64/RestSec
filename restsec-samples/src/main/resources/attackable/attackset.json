@@ -1,5 +1,8 @@
 {
-  "/media/{media-id}/comments" : [ "POST", "DELETE" ],
-  "/users/{user-id}/relationship" : [ "POST" ],
-  "/media/{media-id}/likes" : [ "POST", "DELETE" ]
+  "http://localhost:10001/album/1" : true,
+  "http://localhost:10001/album/2" : true,
+  "http://localhost:10001/artist/cfrost" : true,
+  "http://localhost:10001/album/3" : true,
+  "http://localhost:10001/artist/opeth" : true,
+  "http://localhost:10001/albums/" : true
 }

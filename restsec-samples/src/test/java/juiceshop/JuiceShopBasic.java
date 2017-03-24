@@ -21,6 +21,8 @@ import static org.hamcrest.Matchers.equalTo;
 //import org.junit.jupiter.api.Test;
 
 //@DisplayName("Testing OWASP JuiceShop v.2.18.0")
+
+@Ignore
 public class JuiceShopBasic {
 
     private static String email;

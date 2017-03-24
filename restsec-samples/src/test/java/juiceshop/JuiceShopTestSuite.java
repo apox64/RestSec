@@ -2,6 +2,7 @@ package juiceshop;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.util.regex.Pattern;
         JuiceShopXSS.class
 })
 
+@Ignore
 public class JuiceShopTestSuite {
 
     private static String serverIP = "";
