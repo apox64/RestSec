@@ -3,7 +3,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Ignore;
 import org.junit.jupiter.api.*;
 import restsec.config.Configuration;
 import restsec.crawler.HATEOASCrawler;

@@ -22,11 +22,6 @@ public class SwaggerFileCrawler implements Crawler {
         this.useAllHTTPMethods = useAllHTTPMethods;
     }
 
-    @Override
-    public void crawl(){
-        LOGGER.info("Swagger File: \t\t"+swaggerFileLocation);
-        parseSwaggerJSON(swaggerFileLocation, useAllHTTPMethods);
-    }
 
     @Override
     public AttackSet crawl(String target) {

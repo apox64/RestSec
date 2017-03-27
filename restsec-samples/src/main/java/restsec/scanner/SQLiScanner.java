@@ -3,6 +3,7 @@ package restsec.scanner;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restsec.AttackSet;
 
 public class SQLiScanner implements Scanner {
 
@@ -18,7 +19,7 @@ public class SQLiScanner implements Scanner {
     }
 
     @Override
-    public void scan() {
+    public void scan(String targetURL, AttackSet attackSet) {
         LOGGER.info("Trying SQLi ...");
         int numberOfSentPackets = 0;
         int acceptedPackets = 0;

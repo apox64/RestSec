@@ -21,12 +21,6 @@ public class HATEOASCrawler implements Crawler {
     }
 
     @Override
-    public void crawl() {
-        LOGGER.info("Following HATEOAS links on : " + entryPoint);
-        discoverLinks(entryPoint);
-    }
-
-    @Override
     public AttackSet crawl(String target) {
         LOGGER.info("Following HATEOAS links on : " + target);
         return discoverLinks(target);
@@ -51,7 +45,7 @@ public class HATEOASCrawler implements Crawler {
             }
         }
 
-        for (Object key : relevantURLs.keySet()) {
+        for (Object key : relevantURLs.entrySet()) {
             attackSet.put(key, relevantURLs.get(key));
         }
 
@@ -121,7 +115,7 @@ public class HATEOASCrawler implements Crawler {
 
         HashMap<String, Boolean> resultMap = new HashMap<>();
 
-        for (Object key : bigMap.keySet()) {
+        for (Object key : bigMap.entrySet()) {
             if (smallMap.containsKey(key.toString())) {
                 resultMap.put(key.toString(), smallMap.get(key) || bigMap.get(key));
             } else {

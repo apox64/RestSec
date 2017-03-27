@@ -1,17 +1,26 @@
 package restsec.scanner;
 
-public class ScannerUtils {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import restsec.config.ScannerType;
 
-    public static int numberOfSentPackets = 0;
-    public static int acceptedPackets = 0;
-    public static int rejectedPackets = 0;
+class ScannerUtils {
 
-    public static void printPackageStatistics() {
-        System.out.println("----------------------------\nrestsec.Scanner: Stats for XSS Scan:\n----------------------------\n" + numberOfSentPackets + " packets sent. ");
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScannerUtils.class);
+
+    static int numberOfSentPackets = 0;
+    static int acceptedPackets = 0;
+    static int rejectedPackets = 0;
+
+    static void printPackageStatistics(ScannerType scannerType) {
+        LOGGER.info("----------------------------");
+        LOGGER.info("Stats for "+scannerType+" Scan:");
+        LOGGER.info("----------------------------");
+        LOGGER.info(numberOfSentPackets + " packets sent.");
         if (numberOfSentPackets != 0) {
-            System.out.println(acceptedPackets + " packets accepted. (" + (acceptedPackets * 100 / numberOfSentPackets) + "%).\n----------------------------");
+            LOGGER.info(acceptedPackets + " packets accepted. (" + (acceptedPackets * 100 / numberOfSentPackets) + "%)");
         }
-        System.out.println("----------------------------");
+        LOGGER.info("----------------------------");
     }
 
 }

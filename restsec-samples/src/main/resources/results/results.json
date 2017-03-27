@@ -4,11 +4,5 @@
     "Endpoint": "endpoint_test",
     "Payload": "payload_test",
     "Comment": "comment_test"
-  },
-  "2": {
-    "VulnType": "XSS",
-    "Endpoint": "unknown",
-    "Payload": "unknown",
-    "Comment": "Payload called back: no token found"
   }
 }

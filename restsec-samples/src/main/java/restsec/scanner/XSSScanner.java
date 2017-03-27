@@ -6,9 +6,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restsec.AttackSet;
 import restsec.CallbackServer;
 import restsec.config.Configuration;
 import restsec.Evaluator;
+import restsec.config.ScannerType;
 
 import java.io.FileReader;
 import java.net.ConnectException;
@@ -26,7 +28,7 @@ public class XSSScanner implements Scanner {
     private CallbackServer callbackServer = new CallbackServer();
 
     private String attackSetFile = "";
-    private JSONObject attackSet = new JSONObject();
+//    private JSONObject attackSet = new JSONObject();
     private String payloadsFile = "";
     private JSONObject payloads = new JSONObject();
 
@@ -36,24 +38,24 @@ public class XSSScanner implements Scanner {
     }
 
     @Override
-    public void scan() {
+    public void scan(String targetURL, AttackSet attackSet) {
 
         JSONParser parser = new JSONParser();
         try{
             //noinspection ConstantConditions
-            attackSet = (JSONObject) parser.parse(new FileReader(config.getAttackSetFileLocation()));
+//            attackSet = (AttackSet) parser.parse(new FileReader(config.getAttackSetFileLocation()));
 
-            int attackSetSize = 0;
-            for (Object key : attackSet.keySet()) {
-                JSONArray httpMethods = (JSONArray) attackSet.get(key);
-                attackSetSize += httpMethods.size();
-            }
+//            int attackSetSize = 0;
+//            for (Object key : attackSet.keySet()) {
+//                JSONArray httpMethods = (JSONArray) attackSet.get(key);
+//                attackSetSize += httpMethods.size();
+//            }
 
             LOGGER.info(attackSet.size()+" attackable endpoint(s) loaded from file: "+attackSetFile);
             //noinspection ConstantConditions
             payloads = (JSONObject) parser.parse(new FileReader(payloadsFile));
-            LOGGER.info(payloads.size()+" payload(s) loaded from file: "+payloadsFile);
-            LOGGER.info("--> "+attackSetSize*payloads.size()+" total attacks");
+            LOGGER.info(payloads.size() + " payload(s) loaded from file: " + payloadsFile);
+            LOGGER.info("--> " + attackSet.size() * payloads.size() + " total attacks");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -69,7 +71,7 @@ public class XSSScanner implements Scanner {
             tryVerbsForGivenURL(host+endpoint, httpVerbsArray);
         }
 
-        ScannerUtils.printPackageStatistics();
+        ScannerUtils.printPackageStatistics(ScannerType.XSS);
 
         callbackServer.stopCallbackServer();
 
@@ -168,8 +170,6 @@ public class XSSScanner implements Scanner {
                 LOGGER.warn("Requested HTTP method not implemented.");
         }
     }
-
-
 
     private String updatePayloadWithCallbackValues(String payload){
         String regex = "script.*(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):(\\d{1,5}).*script";

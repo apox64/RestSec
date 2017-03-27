@@ -129,7 +129,7 @@ public class Configuration {
     }
 
     public String getAttackSetFileLocation() {
-        if (properties.getProperty("attackSetFileLocation").toLowerCase().equals("default")) {
+        if (properties.getProperty("attackSetFileLocation").equalsIgnoreCase("default")) {
             return "src/main/resources/attackable/attackset.json";
         } else {
             return properties.getProperty("attackSetFileLocation");

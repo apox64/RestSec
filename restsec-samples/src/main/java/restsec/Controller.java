@@ -23,20 +23,11 @@ class Controller {
         //TODO: Who offers the method "writeAttackSetToFile"?
         new AttackSet().writeAttackSetToFile(attackSet, config.getAttackSetFileLocation());
 
-        /*
-        new CallbackServer()
-
-        AttackSet attackSet = crawler.crawl(target);
-        scanner.scan(target, attackSet);
-        */
-
-        System.exit(0);
-
-        //TODO : Currently exiting here, so you don't have to stop the programm everytime
+//        System.exit(0);
 
         ScannerFactory scannerFactory = new ScannerFactory(config);
         Scanner scanner = scannerFactory.createScanner();
-        scanner.scan();
+        scanner.scan(config.getTargetURLAsString(), attackSet);
 
 //        System.exit(0);
 

@@ -4,12 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.apache.xpath.operations.Bool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restsec.config.Configuration;
 
 import java.io.*;
 import java.net.InetAddress;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -27,17 +29,23 @@ public class Evaluator {
         config = configuration;
     }
 
-    private void deleteOldLogFile() {
+    void deleteOldLogFile() {
 
-        if (config.getBoolDeleteOldResultsFile()) {
-            try {
-                boolean deleteStatus = Files.deleteIfExists(new File("src/main/resources/results/results.json").toPath());
-                LOGGER.info("Old Logfile \"results.json\" deleted: " + deleteStatus);
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-            }
+        File fileToDelete = new File("src/main/resources/results/results.json");
+
+        if (fileToDelete.exists()) {
+            boolean bool = fileToDelete.delete();
+            LOGGER.info(fileToDelete + " deleted? : " + bool);
         }
 
+//        if (config.getBoolDeleteOldResultsFile()) {
+//            try {
+//                boolean deleteStatus = Files.deleteIfExists(fileToDelete.toPath());
+//                LOGGER.info("Old Logfile \"results.json\" deleted: " + deleteStatus);
+//            } catch (IOException ioe) {
+//                ioe.printStackTrace();
+//            }
+//        }
     }
 
     void evaluateJettyLogfile() {
@@ -79,6 +87,12 @@ public class Evaluator {
 
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                bufferedReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -87,13 +101,27 @@ public class Evaluator {
         File file = new File("src/main/resources/results/results.json");
 
         if (!file.isFile()) {
+            BufferedWriter bufferedWriter = null;
             try {
-                FileWriter fileWriter = new FileWriter(file, false);
-                fileWriter.write("{}");
-                fileWriter.flush();
-                fileWriter.close();
+                bufferedWriter = new BufferedWriter(new FileWriter(file, false));
+                bufferedWriter.write("{}");
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                if (bufferedWriter != null) {
+                    try {
+                        bufferedWriter.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (bufferedWriter != null) {
+                    try {
+                        bufferedWriter.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
 
@@ -105,7 +133,7 @@ public class Evaluator {
 
         try {
             existingJsonObject = (JsonObject) parser.parse(new FileReader("src/main/resources/results/results.json"));
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -118,15 +146,30 @@ public class Evaluator {
 
         existingJsonObject.add(String.valueOf(vulnerabilityCounter), new Gson().toJsonTree(newJsonObject));
 
+        BufferedWriter bw = null;
         try {
-            FileWriter fileWriter = new FileWriter(file, false);
+            bw = new BufferedWriter(new FileWriter(file, false));
             String jsonOutput = gsonBuilder.toJson(existingJsonObject);
-            fileWriter.write(jsonOutput);
-            fileWriter.flush();
-            fileWriter.close();
+            bw.write(jsonOutput);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (bw != null) {
+                try {
+                    bw.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (bw != null) {
+                try {
+                    bw.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+
     }
 
 }
