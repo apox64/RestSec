@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/apox64/RestSec.svg?branch=development)](https://travis-ci.org/apox64/RestSec)
 
-`This project is currently in refactoring.
+`This project is currently refactored.`
 
 ## Overview
 - [Description](#Description)
