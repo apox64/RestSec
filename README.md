@@ -1,6 +1,8 @@
 # RestSec
 
-`This project is still in the early phase of development.`
+[![Build Status](https://travis-ci.org/apox64/RestSec.svg?branch=development)](https://travis-ci.org/apox64/RestSec)
+
+`This project is currently refactored.`
 
 ## Overview
 - [Description](#Description)
@@ -13,9 +15,9 @@
 ## Description <a name="Description"></a>
 
 This tool is developed with the aim of testing the REST interface of your web service for some of the __OWASP Top 10__ security vulnerabilities automatically. It uses
-- [junit 4.12](https://github.com/junit-team/junit4) __(JUnit 5 is currently not supported)__
+- [junit 5 (jupiter)](https://github.com/junit-team/junit5)
 - [rest-assured](https://github.com/rest-assured/rest-assured)
-- built with: Maven (adding gradle later)
+- built with: Maven
 
 ## Supported OWASP Top 10 (2013) Security Vulnerabilities <a name="Supported_Vulnerabilities"></a>
 
@@ -42,8 +44,8 @@ Some of the following common security vulnerabilities categories __can't be prop
 
 ### restsec-samples (with juice-shop) <a name="restsec-samples"></a>
 - run the [juice-shop](https://github.com/bkimminich/juice-shop) by [@bkimminich](https://github.com/bkimminich)
-- enter the URI and port of the instance in __initTarget()__
+- enter the URI and port of the instance in the config.properties file
 - run all tests
 
 ### restsec-core (*no content yet*) <a name="restsec-core"></a>
-- the tests from __restsec-samples__ will be moved here when generalized
+- the tests from __restsec-samples__ will be moved here when stable, tested and refactored
