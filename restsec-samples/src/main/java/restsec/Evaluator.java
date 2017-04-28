@@ -11,6 +11,9 @@ import restsec.config.Configuration;
 
 import java.io.*;
 import java.net.InetAddress;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -29,14 +32,54 @@ public class Evaluator {
         config = configuration;
     }
 
-    void deleteOldLogFile() {
+    void deleteOldResultsFile() {
 
+        /*
         File fileToDelete = new File("src/main/resources/results/results.json");
+
+        if(fileToDelete.delete()){
+            System.out.println(fileToDelete.getName() + " is deleted!");
+        }else{
+            System.out.println("Delete operation failed.");
+        }
 
         if (fileToDelete.exists()) {
             boolean bool = fileToDelete.delete();
             LOGGER.info(fileToDelete + " deleted? : " + bool);
         }
+        */
+
+        String fileName = "src/main/resources/results/results.json";
+        File file = new File(fileName);
+
+        System.out.println(file.canRead() + " " + file.canWrite()+" "+file.canExecute());
+
+        try {
+            System.out.println("deletedIfExists?: "+Files.deleteIfExists(file.toPath()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("delete result:" + file.delete());
+
+
+        /*
+        try {
+            FileChannel channel = new RandomAccessFile(file, "rw").getChannel();
+
+            FileLock lock = channel.lock();
+            try {
+                lock = channel.tryLock();
+                System.out.print("file is not locked");
+            } catch (OverlappingFileLockException e) {
+                System.out.print("file is locked");
+            } finally {
+                lock.release();
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        */
 
 //        if (config.getBoolDeleteOldResultsFile()) {
 //            try {
@@ -50,7 +93,9 @@ public class Evaluator {
 
     void evaluateJettyLogfile() {
 
-        deleteOldLogFile();
+        if (config.getBoolDeleteOldResultsFile()) {
+            deleteOldResultsFile();
+        }
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String s = sdf.format(new Date()).replace("-", "_");
@@ -100,6 +145,7 @@ public class Evaluator {
 
         File file = new File("src/main/resources/results/results.json");
 
+        // try with ressources
         if (!file.isFile()) {
             BufferedWriter bufferedWriter = null;
             try {

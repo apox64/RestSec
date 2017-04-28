@@ -16,28 +16,36 @@ class EvaluatorTest {
 
     }
 
+    @AfterEach
+    void tearDown() {
+
+    }
+
     @Test
     @DisplayName("Writing Vulnerability (vulnType, endpoint, payload, comment) to file.")
     void writeVulnerabilityToFileTest() {
         int counter = 0;
         Evaluator.writeVulnerabilityToResultsFile("vulnType_test","endpoint_test", "payload_test", "comment_test");
-        BufferedReader bufferedReader = null;
-        try {
-            bufferedReader = new BufferedReader(new FileReader("src/main/resources/results/results.json"));
+        //BufferedReader bufferedReader = null;
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("src/main/resources/results/results.json"))) {
+
+
+
+//            bufferedReader = new BufferedReader(new FileReader("src/main/resources/results/results.json"));
             while (bufferedReader.readLine() != null) {
                 counter++;
             }
-            bufferedReader.close();
+//            bufferedReader.close();
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (bufferedReader != null) {
-                    bufferedReader.close();
-                }
-            } catch (IOException e) {
+//        } finally {
+//            try {
+//                if (bufferedReader != null) {
+//                    bufferedReader.close();
+//                }
+//            } catch (IOException e) {
                 e.printStackTrace();
-            }
+//            }
         }
         Assertions.assertTrue(counter == 8);
     }
@@ -57,13 +65,8 @@ class EvaluatorTest {
             LOGGER.info("File exists.");
         }
         Evaluator evaluator = new Evaluator(new Configuration());
-        evaluator.deleteOldLogFile();
+        evaluator.deleteOldResultsFile();
         Assertions.assertTrue(!fileToDelete.exists());
-    }
-
-    @AfterEach
-    void tearDown() {
-
     }
 
 }
