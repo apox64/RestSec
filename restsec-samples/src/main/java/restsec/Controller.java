@@ -34,6 +34,9 @@ class Controller {
         Evaluator evaluator = new Evaluator(config);
         evaluator.evaluateJettyLogfile();
 
+        Reporting reporting = new Reporting();
+        reporting.generateReport();
+
         LOGGER.info("RestSec terminated.");
         System.exit(0);
     }
