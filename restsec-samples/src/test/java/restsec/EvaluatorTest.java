@@ -21,6 +21,7 @@ class EvaluatorTest {
 
     }
 
+    @Disabled
     @Test
     @DisplayName("Writing Vulnerability (vulnType, endpoint, payload, comment) to file.")
     void writeVulnerabilityToFileTest() {
@@ -50,6 +51,7 @@ class EvaluatorTest {
         Assertions.assertTrue(counter == 8);
     }
 
+    @Disabled
     @Test
     @DisplayName("Old results.json deleted properly.")
     void deleteOldResultsFileTest() {
