@@ -52,6 +52,7 @@ public class CallbackServer {
         System.setProperty("org.eclipse.jetty.util.log.WARN","true");
 
         if (deleteOldLogs) {
+            //File directory = new File("logs/");
             File directory = new File("src/main/resources/jetty-logs/");
 
             //noinspection ConstantConditions
