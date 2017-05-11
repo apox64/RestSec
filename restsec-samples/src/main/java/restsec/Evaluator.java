@@ -143,6 +143,8 @@ public class Evaluator {
 
     public static void writeVulnerabilityToResultsFile(String vulnType, String endpoint, String payload, String comment) {
 
+        LoggerFactory.getLogger(Evaluator.class).info("Writing found vulnerability to file: " + vulnType);
+
         File file = new File("src/main/resources/results/results.json");
 
         // try with ressources
