@@ -1,6 +1,6 @@
 # RestSec
 
-[![Build Status](https://travis-ci.org/apox64/RestSec.svg?branch=development)](https://travis-ci.org/apox64/RestSec)
+[![Build Status](https://travis-ci.org/apox64/RestSec.svg?branch=master)](https://travis-ci.org/apox64/RestSec)
 
 `This project is currently refactored.`
 
