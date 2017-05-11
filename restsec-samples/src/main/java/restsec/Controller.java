@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import restsec.config.Configuration;
 import restsec.crawler.Crawler;
 import restsec.crawler.CrawlerFactory;
+import restsec.scanner.HTTPSecurityHeadersScanner;
 import restsec.scanner.Scanner;
 import restsec.scanner.ScannerFactory;
 
@@ -28,6 +29,11 @@ class Controller {
         ScannerFactory scannerFactory = new ScannerFactory(config);
         Scanner scanner = scannerFactory.createScanner();
         scanner.scan(config.getTargetURLAsString(), attackSet);
+
+        if (config.getPerformBasicSecurityHeaderTests()) {
+            HTTPSecurityHeadersScanner httpSecurityHeadersScanner= new HTTPSecurityHeadersScanner();
+            httpSecurityHeadersScanner.scanForSecurityHeaders(config.getBasePath());
+        }
 
 //        System.exit(0);
 

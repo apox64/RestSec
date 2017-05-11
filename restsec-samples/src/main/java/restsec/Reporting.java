@@ -29,7 +29,8 @@ class Reporting {
 
             //populating the Map
             map = setGeneralScanValuesFromConfig(map);
-            map = readResultsJSON(map);
+            map = readVulnerabilityResultsJSON(map);
+            map = readSecurityHeadersResultsJSON(map);
 
             //Processing the Map and write it to file
             map.put("ReportGeneratedTime", new SimpleDateFormat("dd MMMM yyyy - HH:mm:ss", new Locale("en", "US")).format(Calendar.getInstance().getTime()));
@@ -63,7 +64,7 @@ class Reporting {
         }
     }
 
-    private Map readResultsJSON(Map<String, Object> map) {
+    private Map readVulnerabilityResultsJSON(Map<String, Object> map) {
 
         JsonParser parser = new JsonParser();
         JsonObject resultsObject = new JsonObject();
@@ -74,10 +75,9 @@ class Reporting {
             e.printStackTrace();
         }
 
-        map.put("counter_vulns", resultsObject.entrySet().size());
-        LOGGER.info("counter_vulns : " + resultsObject.entrySet().size());
-
         HashMap vulnerabilitesMap = new HashMap();
+
+        int vulnCounter = 0;
 
         for (int i = 1; i <= resultsObject.entrySet().size(); i++) {
 
@@ -86,18 +86,65 @@ class Reporting {
 
             JsonObject currObj = resultsObject.getAsJsonObject(Integer.toString(i));
 
-            submap.put("VulnType", currObj.get("VulnType").getAsString());
-            submap.put("Endpoint", currObj.get("Endpoint").getAsString());
-            submap.put("Payload", currObj.get("Payload").getAsString().replace("<","&lt;").replace(">", "&gt;"));
-            submap.put("Comment", currObj.get("Comment").getAsString());
+            if (!currObj.get("VulnType").getAsString().equals("Insecure HTTP Header") &&
+                    !currObj.get("VulnType").getAsString().equals("Secure HTTP Header")) {
+                submap.put("VulnType", currObj.get("VulnType").getAsString());
+                submap.put("Endpoint", currObj.get("Endpoint").getAsString());
+                submap.put("Payload", currObj.get("Payload").getAsString().replace("<", "&lt;").replace(">", "&gt;"));
+                submap.put("Comment", currObj.get("Comment").getAsString());
 
-            //put in into the main map
-            vulnerabilitesMap.put("vuln_" + Integer.toString(i), submap);
-            LOGGER.info("vuln put to map");
+                vulnerabilitesMap.put("vuln_" + Integer.toString(i), submap);
+                LOGGER.info("vuln (xss, sqli, etc.) put to map");
+                vulnCounter++;
+            }
         }
 
+        LOGGER.info("counter_vulns : " + vulnCounter);
+        map.put("counter_vulns", vulnCounter);
         map.put("vulnerabilites", vulnerabilitesMap);
+        return map;
+    }
 
+    private Map readSecurityHeadersResultsJSON(Map<String, Object> map) {
+        JsonParser parser = new JsonParser();
+        JsonObject resultsObject = new JsonObject();
+        HashMap securityHeadersMap = new HashMap();
+
+        try {
+            resultsObject = (JsonObject) parser.parse(new FileReader("src/main/resources/results/results.json"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        int headerCounter = 0;
+        int insecureCounter = 0;
+
+        for (int i = 1; i <= resultsObject.entrySet().size(); i++) {
+            //create submap for each vuln, read the values from the JSON and put them in a fresh map
+            HashMap<String, String> submap = new HashMap<>();
+            JsonObject currObj = resultsObject.getAsJsonObject(Integer.toString(i));
+
+            if (currObj.get("VulnType").getAsString().equals("Insecure HTTP Header") ||
+                    currObj.get("VulnType").getAsString().equals("Secure HTTP Header")) {
+                submap.put("VulnType", currObj.get("VulnType").getAsString());
+                submap.put("Endpoint", currObj.get("Endpoint").getAsString());
+                submap.put("Header", currObj.get("Payload").getAsString());
+                submap.put("Comment", currObj.get("Comment").getAsString());
+
+                if (currObj.get("VulnType").getAsString().equals("Insecure HTTP Header")) {
+                    insecureCounter++;
+                }
+
+                securityHeadersMap.put("headers_" + Integer.toString(i), submap);
+                LOGGER.info("http security header put to map");
+                headerCounter++;
+            }
+        }
+
+        LOGGER.info("counter_headers : " + headerCounter);
+        map.put("counter_headers", headerCounter);
+        map.put("counter_insecure_headers", insecureCounter);
+        map.put("securityHeaders", securityHeadersMap);
         return map;
     }
 

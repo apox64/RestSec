@@ -23,12 +23,11 @@ import static io.restassured.RestAssured.given;
 
 public class XSSScanner implements Scanner {
 
-    private Configuration config = new Configuration();
+    private static Configuration config = new Configuration();
     private static final Logger LOGGER = LoggerFactory.getLogger(XSSScanner.class);
     private CallbackServer callbackServer = new CallbackServer();
 
     private String attackSetFile = "";
-//    private JSONObject attackSet = new JSONObject();
     private String payloadsFile = "";
     private JSONObject payloads = new JSONObject();
 
@@ -42,17 +41,7 @@ public class XSSScanner implements Scanner {
 
         JSONParser parser = new JSONParser();
         try{
-            //noinspection ConstantConditions
-//            attackSet = (AttackSet) parser.parse(new FileReader(config.getAttackSetFileLocation()));
-
-//            int attackSetSize = 0;
-//            for (Object key : attackSet.keySet()) {
-//                JSONArray httpMethods = (JSONArray) attackSet.get(key);
-//                attackSetSize += httpMethods.size();
-//            }
-
             LOGGER.info(attackSet.size()+" attackable endpoint(s) loaded from file: "+attackSetFile);
-            //noinspection ConstantConditions
             payloads = (JSONObject) parser.parse(new FileReader(payloadsFile));
             LOGGER.info(payloads.size() + " payload(s) loaded from file: " + payloadsFile);
             LOGGER.info("--> " + attackSet.size() * payloads.size() + " total attacks");
@@ -99,7 +88,7 @@ public class XSSScanner implements Scanner {
                 LOGGER.info("Trying " + httpVerb + " on " + url + " (Payload: \"" + payloadID + "\") ... ");
                 ScannerUtils.numberOfSentPackets++;
                 try {
-                    payload = updatePayloadWithCallbackValues(payload);
+                    payload = updateXSSPayloadWithCallbackValues(payload);
                     sendPacket(url, httpVerb, payload);
                     LOGGER.info("Accepted.");
                     ScannerUtils.acceptedPackets++;
@@ -171,7 +160,7 @@ public class XSSScanner implements Scanner {
         }
     }
 
-    private String updatePayloadWithCallbackValues(String payload){
+    public static String updateXSSPayloadWithCallbackValues(String payload){
         String regex = "script.*(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):(\\d{1,5}).*script";
         Pattern p = Pattern.compile(regex);
         Matcher matcher = p.matcher(payload);

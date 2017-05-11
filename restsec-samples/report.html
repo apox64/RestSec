@@ -43,17 +43,28 @@
         <div class="alert alert-info" role="alert">
             <strong>Scan started:</strong> unknown <br>
             <strong>Scan finished:</strong> unknown <br>
-            <strong>Report generated:</strong> 11 May 2017 - 14:01:59
+            <strong>Report generated:</strong> 11 May 2017 - 18:05:34
         </div>
     </div>
 
-        <div class="alert alert-danger" role="alert">
-            <strong>Danger!</strong> 2 payload(s) executed successfully.
+        <div class="alert alert-success" role="alert">
+            <strong>Success!</strong> No vulnerabilites found.
         </div>
 
+
+
+
+
+            <div class="alert alert-danger" role="alert">
+                <strong>Warning!</strong> <i>None</i> of the common HTTP Headers used for security are set!
+            </div>
+
         <div class="page-header">
-            <h1>Details</h1>
+            <h1>HTTP Security Headers</h1>
         </div>
+
+        <!-- TRYING TO MAKE THE TABLE RESPONSIVE -->
+
         <div class="row">
             <div class="col-md-6">
                 <table class="table table-striped">
@@ -62,33 +73,32 @@
                         <th>#</th>
                         <th>Vulnerability Type</th>
                         <th>Endpoint</th>
-                        <th>Payload</th>
+                        <th>Header</th>
                         <th>Comment</th>
                     </tr>
                     </thead>
                     <tbody>
                     <!-- LOOP THROUGH THE VULNERABILITES FOUND -->
 
-                        <tr>
-                            <td>1</td>
-                                    <td><span class="label label-default">vulnType_test</span></td>
-                            <td>endpoint_test</td>
-                            <td>payload_test</td>
-                            <td>comment_test</td>
-                        </tr>
-                        <tr>
-                            <td>1</td>
-                                    <td><span class="label label-danger">XSS</span></td>
-                            <td>unknown</td>
-                            <td>unknown</td>
-                            <td>Payload called back: no token found</td>
-                        </tr>
+                    <tr>
+                        <td>headers_1</td>
+                                <td><span class="label label-danger">Insecure HTTP Header</span></td>
+                        <td>/</td>
+                        <td><span class="label label-default">Content-Type: myHeader</span></td>
+                        <td>DID NOT reflect invalid header type.</td>
+                    </tr>
+                    <tr>
+                        <td>headers_2</td>
+                                <td><span class="label label-danger">Insecure HTTP Header</span></td>
+                        <td>/</td>
+                        <td><span class="label label-default">Content-Type: myHeader</span></td>
+                        <td>DID NOT reflect invalid header type.</td>
+                    </tr>
 
                     </tbody>
                 </table>
             </div>
         </div>
-
 
     <!--
           <div class="page-header">

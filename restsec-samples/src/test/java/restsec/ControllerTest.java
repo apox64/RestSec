@@ -8,16 +8,15 @@ class ControllerTest {
 
     }
 
-    @Disabled
+    @AfterEach
+    void tearDown() {
+
+    }
+
     @Test
     @DisplayName("Testing the Controller (no content yet)")
     void controllerTest() {
         System.out.println("controllerTest");
-    }
-
-    @AfterEach
-    void tearDown() {
-
     }
 
 }

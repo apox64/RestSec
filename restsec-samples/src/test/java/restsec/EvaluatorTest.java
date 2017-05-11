@@ -1,4 +1,5 @@
 package restsec;
+
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -6,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import restsec.config.Configuration;
 
 import java.io.*;
+import java.nio.file.Files;
 
 class EvaluatorTest {
 
@@ -21,37 +23,14 @@ class EvaluatorTest {
 
     }
 
-    @Disabled
     @Test
     @DisplayName("Writing Vulnerability (vulnType, endpoint, payload, comment) to file.")
-    void writeVulnerabilityToFileTest() {
-        int counter = 0;
-        Evaluator.writeVulnerabilityToResultsFile("vulnType_test","endpoint_test", "payload_test", "comment_test");
-        //BufferedReader bufferedReader = null;
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("src/main/resources/results/results.json"))) {
-
-
-
-//            bufferedReader = new BufferedReader(new FileReader("src/main/resources/results/results.json"));
-            while (bufferedReader.readLine() != null) {
-                counter++;
-            }
-//            bufferedReader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-//        } finally {
-//            try {
-//                if (bufferedReader != null) {
-//                    bufferedReader.close();
-//                }
-//            } catch (IOException e) {
-                e.printStackTrace();
-//            }
-        }
-        Assertions.assertTrue(counter == 8);
+    void writeVulnerabilityToFileTest() throws IOException {
+        Evaluator.writeVulnerabilityToResultsFile("vulnType_test", "endpoint_test", "payload_test", "comment_test");
+        File file = new File("src/main/resources/results/results.json");
+        Assertions.assertTrue(Files.readAllLines(file.toPath()).size() == 8);
     }
 
-    @Disabled
     @Test
     @DisplayName("Old results.json deleted properly.")
     void deleteOldResultsFileTest() {

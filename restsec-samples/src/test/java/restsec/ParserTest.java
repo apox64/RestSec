@@ -27,6 +27,9 @@ class ParserTest {
         //empty
     }
 
+
+    //TODO: Currenty diabling Tests manually. Change to: Read config, if config == HATEOAS, then only test HATEOAS, else only Swagger
+
     @Disabled
     @Nested
     @DisplayName("HATEOAS Parser Tests")
@@ -58,6 +61,7 @@ class ParserTest {
     @Nested
     @DisplayName("Swagger Parser Tests")
     class SwaggerParserTests {
+
         @Test
         @DisplayName("Swagger Crawler for swagger-juiceshop-short.json, not all HTTP methods")
         void parserSwaggerJuiceShopShortNotAllHTTPMethods() throws URISyntaxException {

@@ -120,6 +120,10 @@ public class Configuration {
         */
     }
 
+    public Boolean getPerformBasicSecurityHeaderTests() {
+        return Boolean.parseBoolean(properties.getProperty("performBasicSecurityHeaderTests"));
+    }
+
     public String getHATEOASEntryPoint(){
         return properties.getProperty("entryPointHATEOAS");
     }

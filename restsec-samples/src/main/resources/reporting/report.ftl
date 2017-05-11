@@ -53,7 +53,7 @@
         </div>
     <#else>
         <div class="alert alert-danger" role="alert">
-            <strong>Danger!</strong> ${counter_vulns} payload(s) executed successfully.
+            <strong>Danger!</strong> ${counter_vulns} possible security vulnerabilities found!
         </div>
 
         <div class="page-header">
@@ -76,7 +76,7 @@
 
                     <#list vulnerabilites?keys?sort as key>
                         <tr>
-                            <td>1</td>
+                            <td>${key}</td>
                             <#switch vulnerabilites[key].VulnType>
                                 <#case ("XSS")>
                                     <td><span class="label label-danger">${vulnerabilites[key].VulnType}</span></td>
@@ -103,6 +103,71 @@
 
         </#if>
 
+
+
+
+
+    <#if counter_insecure_headers == 0>
+        <div class="alert alert-success" role="alert">
+            <strong>Success!</strong> All common HTTP Headers used for security are set!
+        </div>
+    <#else>
+        <#if counter_insecure_headers == counter_headers>
+            <div class="alert alert-danger" role="alert">
+                <strong>Warning!</strong> <i>None</i> of the common HTTP Headers used for security are set!
+            </div>
+        <#else>
+            <div class="alert alert-warning" role="alert">
+                <strong>Attention!</strong> ${counter_insecure_headers} <i>possible</i> security issues regarding HTTP Headers found!
+            </div>
+        </#if>
+
+        <div class="page-header">
+            <h1>HTTP Security Headers</h1>
+        </div>
+
+        <!-- TRYING TO MAKE THE TABLE RESPONSIVE -->
+
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Vulnerability Type</th>
+                        <th>Endpoint</th>
+                        <th>Header</th>
+                        <th>Comment</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- LOOP THROUGH THE VULNERABILITES FOUND -->
+
+                    <#list securityHeaders?keys?sort as key>
+                    <tr>
+                        <td>${key}</td>
+                        <#switch securityHeaders[key].VulnType>
+                            <#case ("Insecure HTTP Header")>
+                                <td><span class="label label-danger">${securityHeaders[key].VulnType}</span></td>
+                                <#break>
+                            <#case ("Secure HTTP Header")>
+                                <td><span class="label label-success">${securityHeaders[key].VulnType}</span></td>
+                                <#break>
+                            <#default>
+                                <td><span class="label label-default">${securityHeaders[key].VulnType}</span></td>
+                        </#switch>
+                        <td>${securityHeaders[key].Endpoint}</td>
+                        <td><span class="label label-default">${securityHeaders[key].Header}</span></td>
+                        <td>${securityHeaders[key].Comment}</td>
+                    </tr>
+                    </#list>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </#if>
     <!--
           <div class="page-header">
             <h1>Labels</h1>

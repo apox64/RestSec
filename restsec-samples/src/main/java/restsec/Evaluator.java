@@ -33,62 +33,12 @@ public class Evaluator {
     }
 
     void deleteOldResultsFile() {
-
-        /*
-        File fileToDelete = new File("src/main/resources/results/results.json");
-
-        if(fileToDelete.delete()){
-            System.out.println(fileToDelete.getName() + " is deleted!");
-        }else{
-            System.out.println("Delete operation failed.");
-        }
-
-        if (fileToDelete.exists()) {
-            boolean bool = fileToDelete.delete();
-            LOGGER.info(fileToDelete + " deleted? : " + bool);
-        }
-        */
-
-        String fileName = "src/main/resources/results/results.json";
-        File file = new File(fileName);
-
-        System.out.println(file.canRead() + " " + file.canWrite()+" "+file.canExecute());
-
+        File file = new File("src/main/resources/results/results.json");
         try {
-            System.out.println("deletedIfExists?: "+Files.deleteIfExists(file.toPath()));
+            LOGGER.info("Existing results file deleted: "+Files.deleteIfExists(file.toPath()));
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        System.out.println("delete result:" + file.delete());
-
-
-        /*
-        try {
-            FileChannel channel = new RandomAccessFile(file, "rw").getChannel();
-
-            FileLock lock = channel.lock();
-            try {
-                lock = channel.tryLock();
-                System.out.print("file is not locked");
-            } catch (OverlappingFileLockException e) {
-                System.out.print("file is locked");
-            } finally {
-                lock.release();
-            }
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
-        */
-
-//        if (config.getBoolDeleteOldResultsFile()) {
-//            try {
-//                boolean deleteStatus = Files.deleteIfExists(fileToDelete.toPath());
-//                LOGGER.info("Old Logfile \"results.json\" deleted: " + deleteStatus);
-//            } catch (IOException ioe) {
-//                ioe.printStackTrace();
-//            }
-//        }
     }
 
     void evaluateJettyLogfile() {
@@ -127,7 +77,6 @@ public class Evaluator {
                 }
             } else {
                 LOGGER.warn("Jetty log is empty. Apparently no payload called back.");
-
             }
 
         } catch (IOException e) {
@@ -147,29 +96,11 @@ public class Evaluator {
 
         File file = new File("src/main/resources/results/results.json");
 
-        // try with ressources
         if (!file.isFile()) {
-            BufferedWriter bufferedWriter = null;
-            try {
-                bufferedWriter = new BufferedWriter(new FileWriter(file, false));
-                bufferedWriter.write("{}");
-            } catch (IOException e) {
+            try (BufferedWriter br = new BufferedWriter(new FileWriter(file, false))) {
+                br.write("{}");
+            } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
-                if (bufferedWriter != null) {
-                    try {
-                        bufferedWriter.flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (bufferedWriter != null) {
-                    try {
-                        bufferedWriter.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
             }
         }
 
@@ -179,8 +110,8 @@ public class Evaluator {
         Gson gsonBuilder = new GsonBuilder().setPrettyPrinting().create();
         JsonObject existingJsonObject = new JsonObject();
 
-        try {
-            existingJsonObject = (JsonObject) parser.parse(new FileReader("src/main/resources/results/results.json"));
+        try (FileReader fr = new FileReader(file)) {
+            existingJsonObject = (JsonObject) parser.parse(fr);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -193,31 +124,12 @@ public class Evaluator {
         newJsonObject.addProperty("Comment", comment);
 
         existingJsonObject.add(String.valueOf(vulnerabilityCounter), new Gson().toJsonTree(newJsonObject));
+        String jsonOutput = gsonBuilder.toJson(existingJsonObject);
 
-        BufferedWriter bw = null;
-        try {
-            bw = new BufferedWriter(new FileWriter(file, false));
-            String jsonOutput = gsonBuilder.toJson(existingJsonObject);
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, false))) {
             bw.write(jsonOutput);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (bw != null) {
-                try {
-                    bw.flush();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
-
     }
-
 }
