@@ -102,7 +102,7 @@ public class Evaluator {
 
         BufferedReader bufferedReader = null;
         try {
-            bufferedReader = new BufferedReader(new FileReader("src/main/resources/jetty-logs/jetty-"+ s +".request.log"));
+            bufferedReader = new BufferedReader(new FileReader("target/jetty-logs/jetty-"+ s +".request.log"));
         } catch (FileNotFoundException e) {
             LOGGER.warn("No log found.");
             System.exit(0);

@@ -53,7 +53,8 @@ public class CallbackServer {
 
         if (deleteOldLogs) {
             //File directory = new File("logs/");
-            File directory = new File("src/main/resources/jetty-logs/");
+            File directory = new File("target/jetty-logs/");
+            directory.mkdirs();
 
             //noinspection ConstantConditions
             for (File f : directory.listFiles()) {
@@ -62,7 +63,7 @@ public class CallbackServer {
             }
         }
 
-        NCSARequestLog requestLog = new NCSARequestLog("src/main/resources/jetty-logs/jetty-yyyy_mm_dd.request.log");
+        NCSARequestLog requestLog = new NCSARequestLog("target/jetty-logs/jetty-yyyy_mm_dd.request.log");
 
         requestLog.setAppend(false);
         requestLog.setExtended(false);
