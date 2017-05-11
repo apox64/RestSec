@@ -15,4 +15,9 @@ hs_err_pid*
 .idea/
 restsec-core/target/
 restsec-samples/target/
+restsec-samples/report.html
+restsec-samples/src/main/resources/attackable/attackset.json
+restsec-samples/src/main/resources/results/results.json
 *.iml
+
+
