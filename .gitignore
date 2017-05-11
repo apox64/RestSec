@@ -1,13 +1,15 @@
 *.class
 *.log
 
-# Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
 # Package Files
 *.jar
 *.war
 *.ear
+
+# IDEA config files
+.idea/
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
@@ -16,8 +18,8 @@ hs_err_pid*
 restsec-core/target/
 restsec-samples/target/
 restsec-samples/report.html
-restsec-samples/src/main/resources/attackable/attackset.json
-restsec-samples/src/main/resources/results/results.json
+restsec-samples/src/main/resources/attackable/
+restsec-samples/src/main/resources/results/
 *.iml
 
 
