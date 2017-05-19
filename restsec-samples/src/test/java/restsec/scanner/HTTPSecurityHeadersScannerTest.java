@@ -26,6 +26,7 @@ class HTTPSecurityHeadersScannerTest {
             httpSecurityHeadersScanner.scanForSecurityHeaders(config.getBasePath());
         } catch (IOException e) {
             LoggerFactory.getLogger(HTTPSecurityHeadersScannerTest.class).info("Target is offline. Skipping test.");
+            return;
         }
 
         File file = new File("src/main/resources/results/results.json");
