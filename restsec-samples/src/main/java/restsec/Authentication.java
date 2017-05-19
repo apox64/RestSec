@@ -20,21 +20,21 @@ public class Authentication {
         RestAssured.baseURI = config.getBaseURI();
         RestAssured.basePath = config.getBasePath();
         RestAssured.port = Integer.parseInt(config.getPort());
-        RestAssured.proxy("127.0.0.1", 8080);
-
-        Response response =
-                given().
-                        body("{\"email\":\"" + config.getCredsUsername() + "\",\"password\":\"" + config.getCredsPassword() + "\"}")
-                        .contentType("application/json").
-                        when().
-                        post("/rest/user/login");
+        RestAssured.proxy(config.getProxyIP(), Integer.parseInt(config.getProxyPort()));
 
         try {
+            Response response =
+                    given().
+                            body("{\"email\":\"" + config.getCredsUsername() + "\",\"password\":\"" + config.getCredsPassword() + "\"}")
+                            .contentType("application/json").
+                            when().
+                            post("/rest/user/login");
+
             JsonObject jsonObject = new JsonParser().parse(response.getBody().asString()).getAsJsonObject();
             JsonObject newjsonObject = (JsonObject) jsonObject.get("authentication");
             token = newjsonObject.get("token").toString().replace("\"", "");
         } catch (Exception e) {
-            LOGGER.info("Couldn't obtain token. Invalid credentials?");
+            LOGGER.info("Couldn't obtain token. Target offline? / Invalid credentials?");
             return token;
         }
 

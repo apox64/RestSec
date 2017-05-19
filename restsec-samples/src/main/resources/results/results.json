@@ -1,9 +1,9 @@
 {
   "1": {
-    "VulnType": "vulnType_test",
-    "Endpoint": "endpoint_test",
-    "Payload": "payload_test",
-    "Comment": "comment_test"
+    "VulnType": "Secure HTTP Header",
+    "Endpoint": "/",
+    "Payload": "Content-Type: myHeader",
+    "Comment": "DID NOT reflect invalid header type."
   },
   "2": {
     "VulnType": "Insecure HTTP Header",
