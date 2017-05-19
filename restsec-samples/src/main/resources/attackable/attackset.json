@@ -1,3 +1,5 @@
 {
-  "/api/Products/1" : [ "PUT" ]
+  "/media/{media-id}/comments" : [ "POST", "DELETE" ],
+  "/users/{user-id}/relationship" : [ "POST" ],
+  "/media/{media-id}/likes" : [ "POST", "DELETE" ]
 }

@@ -38,12 +38,12 @@
         </div>
         <div class="alert alert-info" role="alert">
             <strong>Crawler:</strong> SWAGGER<br>
-            <strong>Scanner:</strong> SQLI
+            <strong>Scanner:</strong> XSS
         </div>
         <div class="alert alert-info" role="alert">
             <strong>Scan started:</strong> unknown <br>
             <strong>Scan finished:</strong> unknown <br>
-            <strong>Report generated:</strong> 19 May 2017 - 17:55:08
+            <strong>Report generated:</strong> 19 May 2017 - 18:32:58
         </div>
         <div class="alert alert-info" role="alert">
             <strong>Packets fired:</strong> 0<br>
@@ -51,176 +51,17 @@
         </div>
     </div>
 
-        <div class="alert alert-danger" role="alert">
-            <strong>Danger!</strong> 5 possible security vulnerabilities found!
-        </div>
-
-        <div class="page-header">
-            <h1>Details</h1>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th class="col-xs-1">#</th>
-                        <th class="col-xs-2">Vulnerability Type</th>
-                        <th class="col-xs-2">Endpoint</th>
-                        <th class="col-xs-2">Payload</th>
-                        <th class="col-xs-5">Comment</th>
-                        <!-- col-xs-# should equal 12 (1+1+1+1+8) -->
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <!-- LOOP THROUGH THE VULNERABILITES FOUND -->
-
-                        <tr>
-                            <td>vuln_11</td>
-                                    <td><span class="label label-danger">XSS</span></td>
-                            <td>unknown</td>
-                            <td>unknown</td>
-                            <td>Payload called back: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdGF0dXMiOiJzdWNjZXNzIiwiZGF0YSI6eyJpZCI6MiwiZW1haWwiOiJqaW1AanVpY2Utc2gub3AiLCJwYXNzd29yZCI6ImU1NDFjYTdlY2Y3MmI4ZDEyODY0NzRmYzYxM2U1ZTQ1IiwiY3JlYXRlZEF0IjoiMjAxNy0wNS0xOSAxMzoyNDowOS4wMDAgKzAwOjAwIiwidXBkYXRlZEF0IjoiMjAxNy0wNS0xOSAxMzoyNDowOS4wMDAgKzAwOjAwIn0sImlhdCI6MTQ5NTIwOTIwMCwiZXhwIjoxNDk1MjI3MjAwfQ.OVo6y4nTxK_degcy4NKoLB3P2t0TtyLaEgnHyMwGp7Q</td>
-                        </tr>
-                        <tr>
-                            <td>vuln_12</td>
-                                    <td><span class="label label-danger">XSS</span></td>
-                            <td>unknown</td>
-                            <td>unknown</td>
-                            <td>Payload called back: no token found</td>
-                        </tr>
-                        <tr>
-                            <td>vuln_13</td>
-                                    <td><span class="label label-danger">XSS</span></td>
-                            <td>unknown</td>
-                            <td>unknown</td>
-                            <td>Payload called back: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdGF0dXMiOiJzdWNjZXNzIiwiZGF0YSI6eyJpZCI6MiwiZW1haWwiOiJqaW1AanVpY2Utc2gub3AiLCJwYXNzd29yZCI6ImU1NDFjYTdlY2Y3MmI4ZDEyODY0NzRmYzYxM2U1ZTQ1IiwiY3JlYXRlZEF0IjoiMjAxNy0wNS0xOSAxMzoyNDowOS4wMDAgKzAwOjAwIiwidXBkYXRlZEF0IjoiMjAxNy0wNS0xOSAxMzoyNDowOS4wMDAgKzAwOjAwIn0sImlhdCI6MTQ5NTIwOTIwNCwiZXhwIjoxNDk1MjI3MjA0fQ.ZlH2jbbneNw5ifDWB3mMonxV7wPOOyK72bGUOEapGYk</td>
-                        </tr>
-                        <tr>
-                            <td>vuln_14</td>
-                                    <td><span class="label label-danger">XSS</span></td>
-                            <td>unknown</td>
-                            <td>unknown</td>
-                            <td>Payload called back: no token found</td>
-                        </tr>
-                        <tr>
-                            <td>vuln_15</td>
-                                    <td><span class="label label-danger">XSS</span></td>
-                            <td>unknown</td>
-                            <td>unknown</td>
-                            <td>Payload called back: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdGF0dXMiOiJzdWNjZXNzIiwiZGF0YSI6eyJpZCI6MiwiZW1haWwiOiJqaW1AanVpY2Utc2gub3AiLCJwYXNzd29yZCI6ImU1NDFjYTdlY2Y3MmI4ZDEyODY0NzRmYzYxM2U1ZTQ1IiwiY3JlYXRlZEF0IjoiMjAxNy0wNS0xOSAxMzoyNDowOS4wMDAgKzAwOjAwIiwidXBkYXRlZEF0IjoiMjAxNy0wNS0xOSAxMzoyNDowOS4wMDAgKzAwOjAwIn0sImlhdCI6MTQ5NTIwOTIwOSwiZXhwIjoxNDk1MjI3MjA5fQ.Qp-bXZUZdq4tA8A7TmYrn5xlZi0dt_aNGgT6PRFfnyw</td>
-                        </tr>
-
-                    </tbody>
-                </table>
-            </div>
+        <div class="alert alert-success" role="alert">
+            <strong>Success!</strong> No vulnerabilites found.
         </div>
 
 
 
 
 
-
-            <div class="alert alert-warning" role="alert">
-                <strong>Attention!</strong> 7 <i>possible</i> security issues regarding HTTP Headers found!
-            </div>
-
-        <div class="page-header">
-            <h1>HTTP Security Headers</h1>
+        <div class="alert alert-info" role="alert">
+            <strong>Info!</strong> There were no tests run for security headers!
         </div>
-
-        <!-- TRYING TO MAKE THE TABLE RESPONSIVE -->
-
-        <div class="row">
-            <div class="col-md-6">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Vulnerability Type</th>
-                        <th>Endpoint</th>
-                        <th>Header</th>
-                        <th>Comment</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <!-- LOOP THROUGH THE VULNERABILITES FOUND -->
-
-                    <tr>
-                        <td>headers_1</td>
-                                <td><span class="label label-success">Secure HTTP Header</span></td>
-                        <td>/</td>
-                        <td><span class="label label-default">Content-Type: myHeader</span></td>
-                        <td>DID NOT reflect invalid header type.</td>
-                    </tr>
-                    <tr>
-                        <td>headers_10</td>
-                                <td><span class="label label-danger">Insecure HTTP Header</span></td>
-                        <td>/</td>
-                        <td><span class="label label-default">X-Permitted-Cross-Domain-Policies</span></td>
-                        <td>Security-Header "X-Permitted-Cross-Domain-Policies" missing.</td>
-                    </tr>
-                    <tr>
-                        <td>headers_2</td>
-                                <td><span class="label label-danger">Insecure HTTP Header</span></td>
-                        <td>/</td>
-                        <td><span class="label label-default">Content-Type: URLENC</span></td>
-                        <td>Server accepted Content-Type: URLENC when sending different Content-Type.</td>
-                    </tr>
-                    <tr>
-                        <td>headers_3</td>
-                                <td><span class="label label-success">Secure HTTP Header</span></td>
-                        <td>/</td>
-                        <td><span class="label label-default">X-Content-Type-Options: nosniff</span></td>
-                        <td>Security-Header "X-Content-Type-Options: nosniff" found!</td>
-                    </tr>
-                    <tr>
-                        <td>headers_4</td>
-                                <td><span class="label label-success">Secure HTTP Header</span></td>
-                        <td>/</td>
-                        <td><span class="label label-default">X-Frame-Options</span></td>
-                        <td>Security-Header "X-Frame-Options" found!</td>
-                    </tr>
-                    <tr>
-                        <td>headers_5</td>
-                                <td><span class="label label-danger">Insecure HTTP Header</span></td>
-                        <td>/</td>
-                        <td><span class="label label-default">X-Frame-Options: "SAMEORIGIN" OR "deny"</span></td>
-                        <td>Security-Header "X-Frame-Options: SAMEORIGIN" OR "deny" missing.</td>
-                    </tr>
-                    <tr>
-                        <td>headers_6</td>
-                                <td><span class="label label-danger">Insecure HTTP Header</span></td>
-                        <td>/</td>
-                        <td><span class="label label-default">X-XSS-Protection</span></td>
-                        <td>Security-Header "X-XSS-Protection" missing.</td>
-                    </tr>
-                    <tr>
-                        <td>headers_7</td>
-                                <td><span class="label label-danger">Insecure HTTP Header</span></td>
-                        <td>/</td>
-                        <td><span class="label label-default">No Content-Type Header</span></td>
-                        <td>Target accepted not using a content-type header at all (200 OK).</td>
-                    </tr>
-                    <tr>
-                        <td>headers_8</td>
-                                <td><span class="label label-danger">Insecure HTTP Header</span></td>
-                        <td>/</td>
-                        <td><span class="label label-default">Strict-Transport-Security</span></td>
-                        <td>Security-Header "Strict-Transport-Security" missing.</td>
-                    </tr>
-                    <tr>
-                        <td>headers_9</td>
-                                <td><span class="label label-danger">Insecure HTTP Header</span></td>
-                        <td>/</td>
-                        <td><span class="label label-default">Content-Security-Policy</span></td>
-                        <td>Security-Header "Content-Security-Policy" missing.</td>
-                    </tr>
-
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
     <!--
           <div class="page-header">
             <h1>Labels</h1>
