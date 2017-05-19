@@ -1,14 +1,13 @@
 package restsec;
 
 // Generate HTML report from results.json
-
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restsec.scanner.ScannerUtils;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -22,6 +21,16 @@ class Reporting {
         Configuration configuration = new Configuration();
         configuration.setClassForTemplateLoading(Reporting.class, "/reporting/");
 
+        // check if results file even exists, if not, create one
+        File file = new File("src/main/resources/results/results.json");
+        if (!file.isFile()) {
+            try (BufferedWriter br = new BufferedWriter(new FileWriter(file, false))) {
+                br.write("{}");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         try {
             Template template = configuration.getTemplate("report.ftl");
             StringWriter stringWriter = new StringWriter();
@@ -29,6 +38,10 @@ class Reporting {
 
             //populating the Map
             map = setGeneralScanValuesFromConfig(map);
+
+            Map newMap = ScannerUtils.getPackageStatisticsAsMap();
+            map.put("packageStatistics", newMap);
+
             map = readVulnerabilityResultsJSON(map);
             map = readSecurityHeadersResultsJSON(map);
 
@@ -143,6 +156,7 @@ class Reporting {
 
         LOGGER.info("counter_headers : " + headerCounter);
         map.put("counter_headers", headerCounter);
+        LOGGER.info("counter_insecure_headers : " + insecureCounter);
         map.put("counter_insecure_headers", insecureCounter);
         map.put("securityHeaders", securityHeadersMap);
         return map;

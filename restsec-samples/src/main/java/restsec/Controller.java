@@ -17,14 +17,17 @@ class Controller {
 
         Configuration config = new Configuration();
 
+        // deleting existing results file
+        if (config.getBoolDeleteOldResultsFile()) {
+            Evaluator.deleteOldResultsFile();
+        }
+
         CrawlerFactory crawlerFactory = new CrawlerFactory(config);
         Crawler crawler = crawlerFactory.createCrawler();
         AttackSet attackSet = crawler.crawl(config.getTargetURLAsString());
 
         //TODO: Who offers the method "writeAttackSetToFile"?
         new AttackSet().writeAttackSetToFile(attackSet, config.getAttackSetFileLocation());
-
-//        System.exit(0);
 
         ScannerFactory scannerFactory = new ScannerFactory(config);
         Scanner scanner = scannerFactory.createScanner();
@@ -35,9 +38,7 @@ class Controller {
             httpSecurityHeadersScanner.scanForSecurityHeaders(config.getBasePath());
         }
 
-//        System.exit(0);
-
-        Evaluator evaluator = new Evaluator(config);
+        Evaluator evaluator = new Evaluator();
         evaluator.evaluateJettyLogfile();
 
         Reporting reporting = new Reporting();

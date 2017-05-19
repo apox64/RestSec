@@ -24,15 +24,9 @@ import java.util.regex.Pattern;
 public class Evaluator {
 
     private static int vulnerabilityCounter = 0;
-    private final Logger LOGGER = LoggerFactory.getLogger(Evaluator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Evaluator.class);
 
-    private Configuration config;
-
-    Evaluator(Configuration configuration) {
-        config = configuration;
-    }
-
-    void deleteOldResultsFile() {
+    static void deleteOldResultsFile() {
         File file = new File("src/main/resources/results/results.json");
         try {
             LOGGER.info("Existing results file deleted: "+Files.deleteIfExists(file.toPath()));
@@ -42,10 +36,6 @@ public class Evaluator {
     }
 
     void evaluateJettyLogfile() {
-
-        if (config.getBoolDeleteOldResultsFile()) {
-            deleteOldResultsFile();
-        }
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String s = sdf.format(new Date()).replace("-", "_");
@@ -60,23 +50,35 @@ public class Evaluator {
         String line;
 
         try {
-            if ((line = bufferedReader.readLine()) != null)
-            {
-                if (line.contains("GET //" + InetAddress.getLocalHost().getHostAddress() + ":5555/Cookie:")) {
-                    LOGGER.info("Success! XSS Payload executed and called back! Content: ");
 
-                    if (line.contains("token")) {
-                        Pattern p = Pattern.compile("token=\\S*");
-                        Matcher m = p.matcher(line);
-                        //noinspection ResultOfMethodCallIgnored
-                        m.find();
-                        writeVulnerabilityToResultsFile("XSS", "unknown", "unknown", "Payload called back: "+m.group());
-                    } else {
-                        writeVulnerabilityToResultsFile("XSS", "unknown", "unknown", "Payload called back: no token found");
+            if ((bufferedReader.readLine()) == null) {
+                LOGGER.warn("Jetty log is empty. Apparently no payload called back.");
+            } else {
+                while ((line = bufferedReader.readLine()) != null) {
+                    if (line.contains("GET //" + InetAddress.getLocalHost().getHostAddress() + ":5555/Cookie:")) {
+
+                        Pattern pattern = Pattern.compile("(?:Cookie.*)=(\\S+)");
+                        Matcher matcher = pattern.matcher(line);
+
+                        String content = "";
+
+                        if (matcher.find()) {
+                            content = matcher.group(1);
+                        }
+
+                        LOGGER.info("Success! XSS Payload executed and called back! Content: " + content);
+
+                        if (line.contains("token")) {
+                            Pattern p = Pattern.compile("token=\\S*");
+                            Matcher m = p.matcher(line);
+                            //noinspection ResultOfMethodCallIgnored
+                            m.find();
+                            writeVulnerabilityToResultsFile("XSS", "unknown", "unknown", "Payload called back: " + m.group());
+                        } else {
+                            writeVulnerabilityToResultsFile("XSS", "unknown", "unknown", "Payload called back: no token found");
+                        }
                     }
                 }
-            } else {
-                LOGGER.warn("Jetty log is empty. Apparently no payload called back.");
             }
 
         } catch (IOException e) {

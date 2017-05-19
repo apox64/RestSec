@@ -8,10 +8,11 @@ import restsec.config.Configuration;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.util.List;
 
 class EvaluatorTest {
 
-    static final Logger LOGGER = LoggerFactory.getLogger(EvaluatorTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EvaluatorTest.class);
 
     @BeforeEach
     void setUp() {
@@ -28,8 +29,14 @@ class EvaluatorTest {
     void writeVulnerabilityToFileTest() throws IOException {
         Evaluator.writeVulnerabilityToResultsFile("vulnType_test", "endpoint_test", "payload_test", "comment_test");
         File file = new File("src/main/resources/results/results.json");
-        //TODO: Think of a better test
-        //Assertions.assertTrue(Files.readAllLines(file.toPath()).size() == 8);
+        List<String> list = Files.readAllLines(file.toPath());
+        for (String string : list) {
+            if (string.contains("vulnType_test")) {
+                Assertions.assertTrue(true);
+                return;
+            }
+        }
+        Assertions.assertFalse(true);
     }
 
     @Test
@@ -46,8 +53,7 @@ class EvaluatorTest {
         } else {
             LOGGER.info("File exists.");
         }
-        Evaluator evaluator = new Evaluator(new Configuration());
-        evaluator.deleteOldResultsFile();
+        Evaluator.deleteOldResultsFile();
         Assertions.assertTrue(!fileToDelete.exists());
     }
 

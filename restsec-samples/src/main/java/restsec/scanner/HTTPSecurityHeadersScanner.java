@@ -2,9 +2,11 @@ package restsec.scanner;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.http.Header;
 import io.restassured.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restsec.Authentication;
 import restsec.Evaluator;
 import restsec.config.Configuration;
 
@@ -21,6 +23,8 @@ public class HTTPSecurityHeadersScanner {
     private static String email = "email";
     private static String password = "password";
     private static String resource = "";
+
+    private String juiceToken = Authentication.getTokenForJuiceShop_BodyAuth();
 
     public void scanForSecurityHeaders(String endpoint) {
         resource = endpoint;
@@ -44,6 +48,8 @@ public class HTTPSecurityHeadersScanner {
 
         Response response =
                 given().
+                        header(new Header("Authorization", "Bearer "+juiceToken)).
+                        cookie("token", juiceToken).
                         request().
                         header("Accept", "myHeader").
                         body("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}").
@@ -63,6 +69,7 @@ public class HTTPSecurityHeadersScanner {
 
         Response response =
                 given().
+                        header(new Header("Authorization", "Bearer "+juiceToken)).
                         request().
                         body("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}").
                         contentType(ContentType.URLENC).

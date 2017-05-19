@@ -4,10 +4,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
-import org.openqa.selenium.Point;
-import org.openqa.selenium.Proxy;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.logging.LogType;
 import org.openqa.selenium.logging.LoggingPreferences;
@@ -42,9 +39,11 @@ public class CallbackServer {
         configureJettyLogging(config.getBoolDeleteOldJettyLogs());
     }
 
+    /*
     public CallbackServer(Configuration config) {
 
     }
+    */
 
     private static void configureJettyLogging(boolean deleteOldLogs) {
 
@@ -104,7 +103,7 @@ public class CallbackServer {
             Proxy proxy = new Proxy();
             proxy.setHttpProxy(config.getProxyIP() + ":" + config.getProxyPort());
             desiredCapabilities.setCapability("proxy", proxy);
-            logger.info("Using proxy: "+desiredCapabilities.getCapability("proxy"));
+            logger.info("Using proxy: "+desiredCapabilities.getCapability("proxy").toString());
         }
 
         //silence webdriver logs
@@ -120,6 +119,7 @@ public class CallbackServer {
 
     }
 
+    // reload the page
     public boolean hasAlertOnReload(String url) throws TimeoutException {
         boolean hasAlert = false;
 
@@ -144,11 +144,18 @@ public class CallbackServer {
             logger.info("Alert found (payload worked!)");
             hasAlert = true;
             chromeDriver.switchTo().alert().accept();
+
         } catch (TimeoutException te) {
             logger.info("No alert found.");
-        }
 
-        //TODO: Refresh might actually not even be necessary (reopen on next test does the same)
+            // if there is no alert after a given time, then it has to be some other XSS payload
+            chromeDriver.manage().addCookie(new Cookie(
+                            "token",
+                            Authentication.getTokenForJuiceShop_BodyAuth()
+                    )
+            );
+            chromeDriver.navigate().to(url);
+        }
 
         chromeDriver.close();
 

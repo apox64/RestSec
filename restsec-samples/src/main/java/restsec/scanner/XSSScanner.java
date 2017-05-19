@@ -1,12 +1,14 @@
 package restsec.scanner;
 
 import io.restassured.http.ContentType;
+import io.restassured.http.Header;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restsec.AttackSet;
+import restsec.Authentication;
 import restsec.CallbackServer;
 import restsec.config.Configuration;
 import restsec.Evaluator;
@@ -112,11 +114,14 @@ public class XSSScanner implements Scanner {
 
     private void sendPacket(String url, String httpMethod, String payload) throws ConnectException {
 
+        String juiceToken = Authentication.getTokenForJuiceShop_BodyAuth();
+
         int expectedResponseCode = 200;
 
         switch (httpMethod) {
             case "POST":
                 given().
+                        header(new Header("Authorization", "Bearer "+juiceToken)).cookie("token", juiceToken).
                         request().
                         body(payload).
                         contentType(ContentType.JSON).
@@ -127,6 +132,7 @@ public class XSSScanner implements Scanner {
                 break;
             case "PATCH":
                 given().
+                        header(new Header("Authorization", "Bearer "+juiceToken)).cookie("token", juiceToken).
                         request().
                         body(payload).
                         contentType(ContentType.JSON).
@@ -137,6 +143,7 @@ public class XSSScanner implements Scanner {
                 break;
             case "PUT":
                 given().
+                        header(new Header("Authorization", "Bearer "+juiceToken)).cookie("token", juiceToken).
                         request().
                         body(payload).
                         contentType(ContentType.JSON).
@@ -147,6 +154,7 @@ public class XSSScanner implements Scanner {
                 break;
             case "DELETE":
                 given().
+                        header(new Header("Authorization", "Bearer "+juiceToken)).cookie("token", juiceToken).
                         request().
                         body(payload).
                         contentType(ContentType.JSON).
@@ -172,6 +180,7 @@ public class XSSScanner implements Scanner {
             }
             payload = payload.replace(matcher.group(2), String.valueOf(config.getJettyCallbackPort()));
         }
+        LOGGER.info("Payload updated with Callback Server IP and port.");
         return payload;
     }
 }

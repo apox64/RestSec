@@ -82,6 +82,30 @@ public class Configuration {
         return properties.getProperty("cookie");
     }
 
+    public String getAuthType() {
+        String authType = properties.getProperty("authtype").toLowerCase();
+        switch (authType) {
+            case "none":
+                logger.info("AuthType: no authentification");
+                return "none";
+            case "basic":
+                logger.info("AuthType: Basic");
+                return "basic";
+            case "body":
+                logger.info("AuthType: Body");
+            case "oauth":
+                logger.info("AuthType: OAuth 2.0");
+                return "oauth";
+            case "openidconnect":
+                logger.info("AuthType: OpenID Connect");
+                return "openidconnect";
+            default:
+                logger.info("Please use one of the supported Authentication Types: none, basic, body, oauth, openidconnect");
+                System.exit(0);
+                return null;
+        }
+    }
+
     public CrawlerType getCrawlerType() {
         switch (String.valueOf(properties.getProperty("crawlerType").toUpperCase())) {
             case "HATEOAS":

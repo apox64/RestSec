@@ -4,7 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restsec.config.ScannerType;
 
-class ScannerUtils {
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class ScannerUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScannerUtils.class);
 
@@ -21,6 +27,18 @@ class ScannerUtils {
             LOGGER.info(acceptedPackets + " packets accepted. (" + (acceptedPackets * 100 / numberOfSentPackets) + "%)");
         }
         LOGGER.info("----------------------------");
+    }
+
+    public static Map getPackageStatisticsAsMap() {
+        Map stats = new HashMap();
+        stats.put("acceptedPackets", acceptedPackets);
+        stats.put("numberOfSentPackets", numberOfSentPackets);
+        if (numberOfSentPackets != 0) {
+            stats.put("acceptRatio", (float) acceptedPackets / numberOfSentPackets * 100);
+        } else {
+            stats.put("acceptRatio", 0.);
+        }
+        return stats;
     }
 
 }

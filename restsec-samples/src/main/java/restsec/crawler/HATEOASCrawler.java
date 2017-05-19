@@ -1,10 +1,13 @@
 package restsec.crawler;
 
+import io.restassured.http.Header;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restsec.AttackSet;
+import restsec.Authentication;
 
 import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,7 +61,9 @@ public class HATEOASCrawler implements Crawler {
         Pattern patternFullURL = Pattern.compile("https?://(www\\.)?[a-zA-Z0-9@:%._+-~#=]{2,256}/([a-zA-Z0-9@:%_+-.~#?&/=]*)");
         Pattern patternHostAndPortOnly = Pattern.compile("https?://(www\\.)?[a-zA-Z0-9@:%._+-~#=]{2,256}(:?\\d+)/");
         String responseBody;
-        responseBody = get(resource).asString();
+        responseBody =
+                given().header(new Header("Authorization", "Bearer " + Authentication.getTokenForJuiceShop_BodyAuth())).
+                get(resource).asString();
 
         Matcher matcherFullURL = patternFullURL.matcher(responseBody);
         Matcher matcherHostAndPortOnly = patternHostAndPortOnly.matcher(resource);
@@ -100,6 +105,7 @@ public class HATEOASCrawler implements Crawler {
         return resultMap;
     }
 
+    /*
     @SuppressWarnings("SuspiciousMethodCalls")
     private HashMap<String, Boolean> mergeHashMaps(HashMap<String, Boolean> map1, HashMap<String, Boolean> map2) {
 
@@ -125,5 +131,6 @@ public class HATEOASCrawler implements Crawler {
 
         return resultMap;
     }
+    */
 
 }

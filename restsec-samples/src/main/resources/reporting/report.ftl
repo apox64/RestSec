@@ -45,6 +45,10 @@
             <strong>Scan finished:</strong> unknown <br>
             <strong>Report generated:</strong> ${ReportGeneratedTime}
         </div>
+        <div class="alert alert-info" role="alert">
+            <strong>Packets fired:</strong> ${packageStatistics.numberOfSentPackets}<br>
+            <strong>Packets accepted:</strong> ${packageStatistics.acceptedPackets}     (${packageStatistics.acceptRatio}%)
+        </div>
     </div>
 
     <#if counter_vulns == 0>
@@ -64,11 +68,12 @@
                 <table class="table table-striped">
                     <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Vulnerability Type</th>
-                        <th>Endpoint</th>
-                        <th>Payload</th>
-                        <th>Comment</th>
+                        <th class="col-xs-1">#</th>
+                        <th class="col-xs-2">Vulnerability Type</th>
+                        <th class="col-xs-2">Endpoint</th>
+                        <th class="col-xs-2">Payload</th>
+                        <th class="col-xs-5">Comment</th>
+                        <!-- col-xs-# should equal 12 (1+1+1+1+8) -->
                     </tr>
                     </thead>
                     <tbody>
@@ -107,14 +112,18 @@
 
 
 
-    <#if counter_insecure_headers == 0>
-        <div class="alert alert-success" role="alert">
-            <strong>Success!</strong> All common HTTP Headers used for security are set!
+    <#if counter_headers == 0>
+        <div class="alert alert-info" role="alert">
+            <strong>Info!</strong> There were no tests run for security headers!
         </div>
-    <#else>
+    <#elseif counter_insecure_headers == 0>
+        <div class="alert alert-success" role="alert">
+            <strong>Success!</strong> All tested HTTP (security) Headers are set!
+        </div>
+    <#else >
         <#if counter_insecure_headers == counter_headers>
             <div class="alert alert-danger" role="alert">
-                <strong>Warning!</strong> <i>None</i> of the common HTTP Headers used for security are set!
+                <strong>Warning!</strong> <i>None</i> of the tested HTTP (security) Headers are set!
             </div>
         <#else>
             <div class="alert alert-warning" role="alert">
