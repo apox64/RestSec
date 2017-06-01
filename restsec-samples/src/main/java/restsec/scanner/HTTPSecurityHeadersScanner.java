@@ -24,7 +24,7 @@ public class HTTPSecurityHeadersScanner {
     private static String password = "password";
     private static String resource = "";
 
-    private String juiceToken = Authentication.getTokenForJuiceShop_BodyAuth();
+    private String juiceToken = Authentication.getIDTokenForJuiceShop_BodyAuth();
 
     public void scanForSecurityHeaders(String endpoint) {
         resource = endpoint;
@@ -121,10 +121,10 @@ public class HTTPSecurityHeadersScanner {
         }
 
         if (!response.getHeader("X-Frame-Options").equals("SAMEORIGIN") || !response.getHeader("X-Frame-Options").equals("deny")) {
-            Evaluator.writeVulnerabilityToResultsFile("Insecure HTTP Header", resource, "X-Frame-Options: \"SAMEORIGIN\" OR \"deny\"", "Security-Header \"X-Frame-Options: SAMEORIGIN\" OR \"deny\" missing.");
+            Evaluator.writeVulnerabilityToResultsFile("Insecure HTTP Header", resource, "X-Frame-Options: \"SAMEORIGIN\" / \"deny\"", "Security-Header \"X-Frame-Options: SAMEORIGIN\" OR \"deny\" missing.");
             LOGGER.info("Security-Header \"X-Frame-Options: SAMEORIGIN\" not found.");
         } else {
-            Evaluator.writeVulnerabilityToResultsFile("Secure HTTP Header", resource, "X-Frame-Options: \"SAMEORIGIN\" OR \"deny\"", "Security-Header \"X-Frame-Options: SAMEORIGIN\" OR \"deny\" found!");
+            Evaluator.writeVulnerabilityToResultsFile("Secure HTTP Header", resource, "X-Frame-Options: \"SAMEORIGIN\" / \"deny\"", "Security-Header \"X-Frame-Options: SAMEORIGIN\" OR \"deny\" found!");
         }
     }
 

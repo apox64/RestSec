@@ -62,7 +62,7 @@ public class HATEOASCrawler implements Crawler {
         Pattern patternHostAndPortOnly = Pattern.compile("https?://(www\\.)?[a-zA-Z0-9@:%._+-~#=]{2,256}(:?\\d+)/");
         String responseBody;
         responseBody =
-                given().header(new Header("Authorization", "Bearer " + Authentication.getTokenForJuiceShop_BodyAuth())).
+                given().header(new Header("Authorization", "Bearer " + Authentication.getIDTokenForJuiceShop_BodyAuth())).
                 get(resource).asString();
 
         Matcher matcherFullURL = patternFullURL.matcher(responseBody);

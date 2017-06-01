@@ -93,17 +93,26 @@ public class Configuration {
                 return "basic";
             case "body":
                 logger.info("AuthType: Body");
-            case "oauth":
+                return "body";
+            case "oauth2":
                 logger.info("AuthType: OAuth 2.0");
-                return "oauth";
+                return "oauth2";
             case "openidconnect":
                 logger.info("AuthType: OpenID Connect");
                 return "openidconnect";
             default:
-                logger.info("Please use one of the supported Authentication Types: none, basic, body, oauth, openidconnect");
+                logger.info("Please use one of the supported Authentication Types: none, basic, body, oauth2, openidconnect");
                 System.exit(0);
                 return null;
         }
+    }
+
+    public String getAuthorizationServerPath() {
+        return properties.getProperty("authorizationServerPath");
+    }
+
+    public String getOAuth2Token() {
+        return properties.getProperty("oauth2token");
     }
 
     public CrawlerType getCrawlerType() {

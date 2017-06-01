@@ -149,9 +149,10 @@ public class CallbackServer {
             logger.info("No alert found.");
 
             // if there is no alert after a given time, then it has to be some other XSS payload
+            // TODO : or payload didn't execute
             chromeDriver.manage().addCookie(new Cookie(
                             "token",
-                            Authentication.getTokenForJuiceShop_BodyAuth()
+                            Authentication.getIDTokenForJuiceShop_BodyAuth()
                     )
             );
             chromeDriver.navigate().to(url);

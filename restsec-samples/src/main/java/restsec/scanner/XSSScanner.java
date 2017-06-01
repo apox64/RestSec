@@ -114,7 +114,7 @@ public class XSSScanner implements Scanner {
 
     private void sendPacket(String url, String httpMethod, String payload) throws ConnectException {
 
-        String juiceToken = Authentication.getTokenForJuiceShop_BodyAuth();
+        String juiceToken = Authentication.getIDTokenForJuiceShop_BodyAuth();
 
         int expectedResponseCode = 200;
 

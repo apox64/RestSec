@@ -27,6 +27,7 @@ class BasicSecurityHeaderTests {
     private static String password;
     private static final String resource = "rest/user/login";
 
+    //TODO: Safely remove this class
 
     @BeforeAll
     static void init() throws IOException {

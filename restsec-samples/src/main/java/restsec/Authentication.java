@@ -14,7 +14,7 @@ public class Authentication {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Authentication.class);
 
-    public static String getTokenForJuiceShop_BodyAuth() {
+    public static String getIDTokenForJuiceShop_BodyAuth() {
         Configuration config = new Configuration();
         String token = "";
         RestAssured.baseURI = config.getBaseURI();
@@ -34,11 +34,26 @@ public class Authentication {
             JsonObject newjsonObject = (JsonObject) jsonObject.get("authentication");
             token = newjsonObject.get("token").toString().replace("\"", "");
         } catch (Exception e) {
-            LOGGER.info("Couldn't obtain token. Target offline? / Invalid credentials?");
+            LOGGER.info("Couldn't obtain ID token. Target offline? / Invalid credentials?");
             return token;
         }
 
-        LOGGER.info("Token for \"" + config.getCredsUsername() + " : " + config.getCredsPassword() + "\" : " + token);
+        LOGGER.info("ID token for \"" + config.getCredsUsername() + " : " + config.getCredsPassword() + "\" : " + token);
+        return token;
+    }
+
+    public static String getOAuth2TokenFromConfig() {
+        Configuration config = new Configuration();
+        RestAssured.baseURI = config.getBaseURI();
+        RestAssured.basePath = config.getBasePath();
+        RestAssured.port = Integer.parseInt(config.getPort());
+        RestAssured.proxy(config.getProxyIP(), Integer.parseInt(config.getProxyPort()));
+
+        String token = config.getOAuth2Token();
+        LOGGER.info("OAuth2Token from config : " + token);
+        Response response =
+                given().
+                        auth().oauth2(token).when().post("/SOME/PATH");
         return token;
     }
 

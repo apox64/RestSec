@@ -34,7 +34,7 @@ class Controller {
         scanner.scan(config.getTargetURLAsString(), attackSet);
 
         if (config.getPerformBasicSecurityHeaderTests()) {
-            HTTPSecurityHeadersScanner httpSecurityHeadersScanner= new HTTPSecurityHeadersScanner();
+            HTTPSecurityHeadersScanner httpSecurityHeadersScanner = new HTTPSecurityHeadersScanner();
             httpSecurityHeadersScanner.scanForSecurityHeaders(config.getBasePath());
         }
 
