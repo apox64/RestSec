@@ -10,11 +10,13 @@ import restsec.config.Configuration;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class AuthenticationTest {
 
     @Test
-    @DisplayName("token is not empty")
+    @DisplayName("JuiceShop: if token received, then not empty")
     void getJuiceShopTokenBodyAuthIsNotEmpty() {
         Configuration config = new Configuration();
         try (Socket socket = new Socket()) {
@@ -23,15 +25,48 @@ class AuthenticationTest {
             Assertions.assertTrue(!Authentication.getIDTokenForJuiceShop_BodyAuth().equals(""));
         } catch (IOException e) {
             LoggerFactory.getLogger(AuthenticationTest.class).info("Target or proxy is offline. Skipping test.");
-            return;
         }
     }
 
-    @Disabled
     @Test
-    @DisplayName("get access for given oauth2token")
+    @DisplayName("get OAuth2 token from config")
     void returnsOKforGivenOAuth2AccessToken() {
-        Configuration config = new Configuration();
-        Authentication.getOAuth2TokenFromConfig();
+        String access_token = Authentication.getOAuth2TokenFromConfig();
+        Pattern pattern = Pattern.compile("[a-zA-Z0-9]{16,}");
+        Matcher matcher = pattern.matcher(access_token);
+        Assertions.assertTrue(matcher.matches() || access_token.equals(""));
+    }
+
+    @Test
+    @DisplayName("brentertainment.com : get OAuth2 token (user/pass)")
+    void getTestOauth2TokenForUsernamePassword() {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress("brentertainment.com", 80), 2000);
+            String access_token = Authentication.getOAuth2TokenFromBrentertainment();
+            Pattern pattern = Pattern.compile("[a-f0-9]{40}");
+            Matcher matcher = pattern.matcher(access_token);
+            Assertions.assertTrue(matcher.matches());
+        } catch (IOException e) {
+            LoggerFactory.getLogger(AuthenticationTest.class).info("Target or proxy is offline. Skipping test.");
+        }
+    }
+
+    @Test
+    @DisplayName("brentertainment.com : access API with given OAuth2 token")
+    void testAccessBrentertainmentAPIwithToken() {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress("brentertainment.com", 80), 2000);
+            String access_token = Authentication.getOAuth2TokenFromBrentertainment();
+            Authentication.accessBrentertainmentAPIwithToken(access_token);
+        } catch (IOException e) {
+            LoggerFactory.getLogger(AuthenticationTest.class).info("Target or proxy is offline. Skipping test.");
+        }
+    }
+
+    @Test
+    @DisplayName("if token not set in config, get from brentertainment.com")
+    void getTokenForCorrectAuthType() {
+        String token = Authentication.getAccessToken();
+        Assertions.assertTrue(!token.isEmpty() && token != null);
     }
 }

@@ -1,0 +1,45 @@
+# doesn't do anything yet
+
+---
+target:
+  ip: 192.168.99.100
+  port: 3000
+  base-path: /
+proxy:
+  use: true
+  ip: 127.0.0.1
+  port: 8080
+crawler:
+  type: Swagger
+  hateoas:
+    entrypoint: http://localhost:10001/albums/
+  swagger:
+    configfile: src/main/resources/docs_swagger/swagger-juiceshop-short.json
+scanner:
+  type: XSS
+  deleteOldResultsFile: true
+  xss:
+    payloads: src/main/resources/payloads/xss-short.json
+    allHTTPMethods: false
+  sqli:
+    payloads: src/main/resources/payloads/sqli.json
+    allHTTPMethods: false
+  performHeaderTests: true
+evaluator:
+  deleteOldJettyLogs: true
+  callbackPort: 5555
+reporting:
+  generateReport: true
+credentials:
+  authtype: basic # none, basic, body, oauth2, openidconnect
+  basic:
+    username: jim@juice-sh.op
+    password: ncc-1701
+  oauth2:
+    username: username
+    password: password
+    token: c29tZW9hdXRoMnRva2VudGhhdGlzdXNlZGZvcmF1dGhlbnRpY2F0aW9u
+  useadditionalcookie: false
+  additionalcookie: th1s_1S_A_t3sT_c0ok13
+
+...

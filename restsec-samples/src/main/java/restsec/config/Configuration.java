@@ -14,6 +14,7 @@ import static restsec.config.CrawlerType.HATEOAS;
 import static restsec.config.CrawlerType.SWAGGER;
 import static restsec.config.ScannerType.SQLI;
 import static restsec.config.ScannerType.XSS;
+import static restsec.config.AuthType.*;
 
 public class Configuration {
 
@@ -82,24 +83,23 @@ public class Configuration {
         return properties.getProperty("cookie");
     }
 
-    public String getAuthType() {
-        String authType = properties.getProperty("authtype").toLowerCase();
-        switch (authType) {
+    public AuthType getAuthType() {
+        switch (properties.getProperty("authtype").toLowerCase()) {
             case "none":
                 logger.info("AuthType: no authentification");
-                return "none";
+                return NONE;
             case "basic":
                 logger.info("AuthType: Basic");
-                return "basic";
+                return BASIC;
             case "body":
                 logger.info("AuthType: Body");
-                return "body";
+                return BODY;
             case "oauth2":
                 logger.info("AuthType: OAuth 2.0");
-                return "oauth2";
+                return OAUTH2;
             case "openidconnect":
                 logger.info("AuthType: OpenID Connect");
-                return "openidconnect";
+                return OPENIDCONNECT;
             default:
                 logger.info("Please use one of the supported Authentication Types: none, basic, body, oauth2, openidconnect");
                 System.exit(0);
@@ -107,12 +107,12 @@ public class Configuration {
         }
     }
 
-    public String getAuthorizationServerPath() {
-        return properties.getProperty("authorizationServerPath");
+    public String getAuthorizationServerEndpoint() {
+        return properties.getProperty("authorizationServerEndpoint");
     }
 
-    public String getOAuth2Token() {
-        return properties.getProperty("oauth2token");
+    public String getOAuth2AccessToken() {
+        return properties.getProperty("oauth2accesstoken");
     }
 
     public CrawlerType getCrawlerType() {
