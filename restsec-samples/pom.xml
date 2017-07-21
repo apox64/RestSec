@@ -154,6 +154,13 @@
             <version>1.7.5</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.zaproxy/zap-clientapi -->
+        <dependency>
+            <groupId>org.zaproxy</groupId>
+            <artifactId>zap-clientapi</artifactId>
+            <version>1.3.0</version>
+        </dependency>
+
         <!-- Create HTML Reports with Apache Freemarker -->
         <dependency>
             <groupId>org.freemarker</groupId>
